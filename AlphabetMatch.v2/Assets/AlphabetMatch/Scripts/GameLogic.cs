@@ -6,7 +6,6 @@ using TMPro;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System;
-using System.Diagnostics;
 
 public class GameLogic : MonoBehaviour
 {
@@ -91,7 +90,10 @@ public class GameLogic : MonoBehaviour
 	public TextMeshProUGUI monthText;
 	public TextMeshProUGUI alltimeText;
 
-	string todayDateString;
+    public TextMeshProUGUI[] gardenLetterLabels; // size 26, A–Z in order
+
+
+    string todayDateString;
 	public SaveDataObject saveDataObj;
 	public SaveDataObject weekDataObj;
 	public SaveDataObject monthDataObj;
@@ -115,8 +117,13 @@ public class GameLogic : MonoBehaviour
 	public GameObject MusicOffObj;
 	public AudioSource MusicSource;
 
-	// Start is called before the first frame update
-	void Start()
+	//New variables for new logic!
+    public enum LetterCaseMode { Uppercase, Lowercase, Mixed }
+    public LetterCaseMode letterCaseMode = LetterCaseMode.Lowercase;
+
+
+    // Start is called before the first frame update
+    void Start()
 	{
 		gameState = "StartGame";
 		currentGridClick = -1;
@@ -356,82 +363,101 @@ public class GameLogic : MonoBehaviour
 
 	// --------------------- Grid Click Event -------------------------------//
 
-	public void CheckGridClick(int _gridNumber)
-	{
-		//playLetterAudio(gridObjects[_gridNumber].gridLetter);
-		//
-		if (gridObjects[_gridNumber].gridLetter == currentDisplayLetter)
-		{
 
-			// AnimateToLetter
-			if (!gridObjects[_gridNumber].clickObjectFlag && gridObjects[_gridNumber].gameObject.activeSelf)
-			{
-                UnityEngine.Debug.Log("CORRECT");
-				gridObjects[_gridNumber].clickObjectFlag = true;
-				//
-				starObjects[_gridNumber].GetComponent<Stars>().Animate();
-				// Correct Answer
-				if (levelNumber == 2)
-				{
-					// Play Word Sound
-					playWordAudio(wordDisplayArray[_gridNumber]);
-				}
-				else
-				{
-					// Play Letter Sound
-					playLetterAudio(wordDisplayArray[_gridNumber].Substring(0, 1));
-				}
-				// Decoupled from animation. BV 2/8/24
-				CorrectLetterCounter++;
-				LetterCharacterObj.ShowCharacter(currentLetterPointer);
-				if (currentGridClick == -1)
-				{
-					currentGridClick = _gridNumber;
-					LetterCharacterTransform.localPosition = new Vector3(LetterCharacterTransform.localPosition.x, gridObjects[currentGridClick].transform.localPosition.y, LetterCharacterTransform.localPosition.z);
-					LeanTween.move(LetterCharacterTransform, gridObjects[currentGridClick].transform.localPosition, 0.75f).setOnComplete(OnAnimateOffScreen);
-				}
-				else	// Person clicked too fast. So remove the previous letter and set the next letter to be removed.
-				{
-					gridObjects[currentGridClick].GetComponent<GridObject>().followCharacterFlag = true;
-					currentGridClick = _gridNumber;
-					gridObjects[currentGridClick].GetComponent<GridObject>().followCharacterFlag = true;
-					LeanTween.cancelAll();
-					LeanTween.move(LetterCharacterTransform, gridObjects[currentGridClick].transform.localPosition, 0.75f).setOnComplete(OnAnimateOffScreen);
-				}
-			}
-		}
-        else
+public void CheckGridClick(int _gridNumber)
+{
+    //playLetterAudio(gridObjects[_gridNumber].gridLetter);
+    // OLD:
+    // if (gridObjects[_gridNumber].gridLetter == currentDisplayLetter)
+
+    // NEW: case-insensitive comparison so A == a
+    if (string.Equals(
+            gridObjects[_gridNumber].gridLetter,
+            currentDisplayLetter,
+            StringComparison.OrdinalIgnoreCase))
+    {
+        // AnimateToLetter
+        if (!gridObjects[_gridNumber].clickObjectFlag && gridObjects[_gridNumber].gameObject.activeSelf)
         {
-            UnityEngine.Debug.Log("INCORRECT");
+            UnityEngine.Debug.Log("CORRECT");
+            gridObjects[_gridNumber].clickObjectFlag = true;
+
+            starObjects[_gridNumber].GetComponent<Stars>().Animate();
+
+            // Correct Answer
+            if (levelNumber == 2)
+            {
+                // Play Word Sound
+                playWordAudio(wordDisplayArray[_gridNumber]);
+            }
+            else
+            {
+                // Play Letter Sound
+                playLetterAudio(wordDisplayArray[_gridNumber].Substring(0, 1));
+            }
+
+            // Decoupled from animation. BV 2/8/24
+            CorrectLetterCounter++;
+            LetterCharacterObj.ShowCharacter(currentLetterPointer);
 
             if (currentGridClick == -1)
             {
-                playIncorrectAudio();
-                ShakeGrid();
+                currentGridClick = _gridNumber;
+                LetterCharacterTransform.localPosition = new Vector3(
+                    LetterCharacterTransform.localPosition.x,
+                    gridObjects[currentGridClick].transform.localPosition.y,
+                    LetterCharacterTransform.localPosition.z);
 
-                // Task 02: single-letter mode safety
-                int statsLetter = (currentLetterIndex != null && currentLetterIndex.Length > 0)
-                    ? currentLetterIndex[0]
-                    : currentLetterPointer;
+                LeanTween
+                    .move(LetterCharacterTransform, gridObjects[currentGridClick].transform.localPosition, 0.75f)
+                    .setOnComplete(OnAnimateOffScreen);
+            }
+            else // Person clicked too fast. So remove the previous letter and set the next letter to be removed.
+            {
+                gridObjects[currentGridClick].GetComponent<GridObject>().followCharacterFlag = true;
+                currentGridClick = _gridNumber;
+                gridObjects[currentGridClick].GetComponent<GridObject>().followCharacterFlag = true;
 
-                if (levelNumber == 0)
-                {
-                    saveDataObj.lowlevelMiss[statsLetter] += 1;
-                }
-                if (levelNumber == 1)
-                {
-                    saveDataObj.medlevelMiss[statsLetter] += 1;
-                }
-                if (levelNumber == 2)
-                {
-                    saveDataObj.highlevelMiss[statsLetter] += 1;
-                }
+                LeanTween.cancelAll();
+                LeanTween
+                    .move(LetterCharacterTransform, gridObjects[currentGridClick].transform.localPosition, 0.75f)
+                    .setOnComplete(OnAnimateOffScreen);
             }
         }
     }
+    else
+    {
+        UnityEngine.Debug.Log("INCORRECT");
 
-    // -------------------- Animate Stars FX --------------------------------//
-    public void ResetStars()
+        if (currentGridClick == -1)
+        {
+            playIncorrectAudio();
+            ShakeGrid();
+
+            // Task 02: single-letter mode safety
+            int statsLetter = (currentLetterIndex != null && currentLetterIndex.Length > 0)
+                ? currentLetterIndex[0]
+                : currentLetterPointer;
+
+            if (levelNumber == 0)
+            {
+                saveDataObj.lowlevelMiss[statsLetter] += 1;
+            }
+            if (levelNumber == 1)
+            {
+                saveDataObj.medlevelMiss[statsLetter] += 1;
+            }
+            if (levelNumber == 2)
+            {
+                saveDataObj.highlevelMiss[statsLetter] += 1;
+            }
+        }
+    }
+}
+
+
+// -------------------- Animate Stars FX --------------------------------//
+public void ResetStars()
 	{
 		for (int i = 0; i < 6; i++)
 		{
@@ -453,42 +479,92 @@ public class GameLogic : MonoBehaviour
 		}
 	}
 
-	public void SetGridObjectDisplays()
-	{
-		for (int i = 0; i < 6; i++)
-		{
-			gridObjects[i].gridLetter = wordDisplayArray[i].Substring(0, 1);
-			gridObjects[i].gridWord = wordDisplayArray[i];
-			if (levelNumber == 2)
-			{
-				// Hard Level
-				gridObjects[i].DisplayWordText(gridObjects[i].gridWord);
-				gridObjects[i].DisplayWordImage(gridObjects[i].gridWord);
-				gridObjects[i].gridImage.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-				//gridObjects[i].DisplayLetterImage("");
-				gridObjects[i].ClearLetterImage();
-			}
-			if (levelNumber == 1)
-			{
-				// Med Level
-				gridObjects[i].DisplayWordText(gridObjects[i].gridWord.Substring(0, 1));
-				gridObjects[i].DisplayWordImage(gridObjects[i].gridWord);
-				gridObjects[i].gridImage.color = new Color(1.0f, 1.0f, 1.0f, 0.6f);
-				//gridObjects[i].DisplayLetterImage("");
-				gridObjects[i].ClearLetterImage();
-			}
-			if (levelNumber == 0)
-			{
-				// Easy Level
-				gridObjects[i].ClearWordImage();
-				gridObjects[i].ClearWordText();
-				gridObjects[i].DisplayLetterImage(gridObjects[i].gridWord.Substring(0, 1));
-			}
-		}
-	}
-	// ---------------------  Alphabet Content Selection ----------------------//
+    public void SetGridObjectDisplays()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            GridObject go = gridObjects[i];
 
-	private void GenerateVocabularyList()
+            // Word for this tile
+            go.gridWord = wordDisplayArray[i];
+
+            // Logical letter for checks/stats – always lowercase
+            string baseLetter = go.gridWord.Substring(0, 1).ToLower();
+            go.gridLetter = baseLetter;
+
+            // How we want the letter to LOOK to the player
+            string visualLetter = baseLetter;
+
+            // Letter-case styling only matters in letter modes (not full-word mode)
+            if (levelNumber != 2)
+            {
+                switch (letterCaseMode)
+                {
+                    case LetterCaseMode.Uppercase:
+                        visualLetter = baseLetter.ToUpper();
+                        break;
+
+                    case LetterCaseMode.Lowercase:
+                        visualLetter = baseLetter.ToLower();
+                        break;
+
+                    case LetterCaseMode.Mixed:
+                        bool showUpper = UnityEngine.Random.value > 0.5f;
+                        visualLetter = showUpper ? baseLetter.ToUpper() : baseLetter.ToLower();
+                        break;
+                }
+            }
+
+            // ----------------- MODE 4: FULL WORDS (levelNumber == 2) -----------------
+            if (levelNumber == 2)
+            {
+                // Hide letter TMP (we’re showing full words here)
+                go.ClearLetterText();
+
+                // Original “hard mode” behavior
+                go.DisplayWordText(go.gridWord);
+                go.DisplayWordImage(go.gridWord);
+                go.gridImage.color = new Color(1f, 1f, 1f, 1f);
+
+                // No letter sprite needed
+                go.ClearLetterImage();
+            }
+            else
+            {
+                // ----------------- MODES 1–3: LETTER MODES -----------------
+
+                // Show letter via TMP so we can do upper / lower / mixed
+                go.DisplayLetterText(visualLetter);
+
+                // We don’t need word text in letter modes
+                go.ClearWordText();
+
+                // If you still want a “medium” style that shows the picture,
+                // keep this branch. If you’re not using level 1 anymore,
+                // everything will fall into the "else" case and be letter-only.
+                if (levelNumber == 1)
+                {
+                    // Letter + image
+                    go.DisplayWordImage(go.gridWord);
+                    go.gridImage.color = new Color(1f, 1f, 1f, 0.6f);
+                }
+                else
+                {
+                    // Letter only
+                    go.ClearWordImage();
+                    go.gridImage.color = new Color(1f, 1f, 1f, 1f);
+                }
+
+                // We’re using TMP for the letter, so blank out the letter sprite slot
+                go.ClearLetterImage();
+            }
+        }
+    }
+
+
+    // ---------------------  Alphabet Content Selection ----------------------//
+
+    private void GenerateVocabularyList()
 	{
 		letterList = new string[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
 		//
@@ -570,6 +646,36 @@ public class GameLogic : MonoBehaviour
 		}
 	}
 
+    private void UpdateGardenLetterVisuals()
+    {
+        if (gardenLetterLabels == null || gardenLetterLabels.Length == 0)
+            return;
+
+        for (int i = 0; i < gardenLetterLabels.Length; i++)
+        {
+            char baseLetter = (char)('a' + i); // 0 -> 'a', 1 -> 'b', etc.
+            string letter = baseLetter.ToString();
+
+            switch (letterCaseMode)
+            {
+                case LetterCaseMode.Uppercase:
+                    gardenLetterLabels[i].text = letter.ToUpper();
+                    break;
+
+                case LetterCaseMode.Lowercase:
+                    gardenLetterLabels[i].text = letter.ToLower();
+                    break;
+
+                case LetterCaseMode.Mixed:
+                    gardenLetterLabels[i].text =
+                        UnityEngine.Random.value > 0.5f
+                            ? letter.ToUpper()
+                            : letter.ToLower();
+                    break;
+            }
+        }
+    }
+
 
     // Task 02: Single-letter mode
     // Previously supported 3-letter clusters with wrap-around (Y/Z → A/B).
@@ -580,31 +686,39 @@ public class GameLogic : MonoBehaviour
         letterIndex = 0;
     }
 
-    /*public void SetLetterIndex(int _num)
-	{
-		currentLetterIndex = new int[] { _num, _num + 1, _num + 2 };
-		if (_num == 24)
-		{
-			currentLetterIndex = new int[] { _num, _num + 1, 0 };
-		}
-		if (_num == 25)
-		{
-			currentLetterIndex = new int[] { _num, 0, 1 };
-		}
-	}
-	*/
+/*public void SetLetterIndex(int _num)
+{
+    currentLetterIndex = new int[] { _num, _num + 1, _num + 2 };
+    if (_num == 24)
+    {
+        currentLetterIndex = new int[] { _num, _num + 1, 0 };
+    }
+    if (_num == 25)
+    {
+        currentLetterIndex = new int[] { _num, 0, 1 };
+    }
+}
+*/
 
 
-    public void SetCurrentLetter(int _num)
-	{
-		currentLetterPointer = _num;
-		currentDisplayLetter = letterList[_num];
-		string imageFilename = "Letters/" + currentDisplayLetter + "_letter";
-		DisplayLetterText.sprite = Resources.Load<Sprite>(imageFilename);
-		//DisplayLetterText.text = currentDisplayLetter.ToUpper();
-	}
+public void SetCurrentLetter(int _num)
+{
+    currentLetterPointer = _num;
 
-	public void GenerateRandomDisplayList()
+    // Canonical logical letter (always lowercase)
+    currentDisplayLetter = letterList[_num].ToLower();
+
+    // Sprites are named using the base (lowercase) letter
+    string imageFilename = "Letters/" + currentDisplayLetter + "_letter";
+    DisplayLetterText.sprite = Resources.Load<Sprite>(imageFilename);
+
+    // If you ever switch to text instead of an image for the big letter,
+    // you could apply letterCaseMode here to control its visual case.
+    // e.g. DisplayLetterTextTMP.text = ...;
+}
+
+
+public void GenerateRandomDisplayList()
 	{
 		// Put all correct words in ArrayList
 		List<string> randomCorrectWords = new List<string>();
@@ -788,13 +902,45 @@ public class GameLogic : MonoBehaviour
 		gameState = "LevelSelect";
 	}
 
-	public void ChooseLevel(int _level)
-	{
-		levelNumber = _level;
-		gameState = "AnimateGarden";
-	}
+    public void ChooseLevel(int menuChoice)
+    {
+        // menuChoice comes from the Button's OnClick() parameter
 
-	public void ClearGlows()
+        switch (menuChoice)
+        {
+            case 0: // Uppercase letters
+                letterCaseMode = LetterCaseMode.Uppercase;
+                levelNumber = 0;              // letter layout
+                break;
+
+            case 1: // Lowercase letters
+                letterCaseMode = LetterCaseMode.Lowercase;
+                levelNumber = 0;              // letter layout (same layout, different look)
+                break;
+
+            case 2: // Mixed upper + lower letters
+                letterCaseMode = LetterCaseMode.Mixed;
+                levelNumber = 0;              // still the letter layout
+                break;
+
+            case 3: // Full words
+                    // Case mode doesn't matter here; we use full-word layout
+                levelNumber = 2;              // the existing "hard / word" layout
+                break;
+
+            default:
+                // Safety fallback
+                letterCaseMode = LetterCaseMode.Lowercase;
+                levelNumber = 0;
+                break;
+        }
+
+        UpdateGardenLetterVisuals();
+        gameState = "AnimateGarden";
+    }
+
+
+    public void ClearGlows()
 	{
 		GameObject[] gos;
 		gos = GameObject.FindGameObjectsWithTag("Glow");
