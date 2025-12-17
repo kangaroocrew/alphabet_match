@@ -20,7 +20,7 @@ public class GardenLogic : MonoBehaviour
 	
 	float timer;
 	float waitTime;
-	int[] letterSelection;
+	int letterSelection;
 	
 	// Start is called before the first frame update
     void Start()
@@ -42,7 +42,7 @@ public class GardenLogic : MonoBehaviour
 		StopCounter = 0;
 		AnimateFlag = false;
 		//
-		letterSelection = new int[3]{-1,-1,-1};
+		letterSelection = -1;
 	}
 	
 	public void SelectChars(int _char){
@@ -64,7 +64,9 @@ public class GardenLogic : MonoBehaviour
 			GardenLetters[i].GetComponent<AnimateGardenLetter>().ResetAnimate();
 		}
 	}
-	
+
+
+    /* REMOVED SO 3 LETTERS ARE NO LONGER ANIMATED~
 	public void AnimateLetterSelect(int _letterNum){
 		if (!AnimateFlag){
 			letterSelection[0] = _letterNum;
@@ -80,7 +82,18 @@ public class GardenLogic : MonoBehaviour
 			AnimateFlag = true;
 		}
 	}
+	*/
 
+    public void AnimateLetterSelect(int _letterNum)
+    {
+        if (!AnimateFlag)
+        {
+            letterSelection = _letterNum;
+            AnimateFlag = true;
+        }
+    }
+
+    /* REMOVED COMPLETELY SINCE IT DEALS IN THREE LETTERS.
     // Update is called once per frame
     void Update()
     {
@@ -94,7 +107,7 @@ public class GardenLogic : MonoBehaviour
 						AnimateFlag = false;
 						gameLogicObj.SetLetterIndex(randomLetterIndex);
 					}
-				}else{*/
+				}else{*/ /*
 					if (LetterCounter != letterSelection[0] && LetterCounter != letterSelection[1] && LetterCounter != letterSelection[2]){
 						if (LetterCounter<26){
 							GardenLetters[LetterCounter].GetComponent<AnimateGardenLetter>().AnimateFlag = 1;
@@ -112,5 +125,39 @@ public class GardenLogic : MonoBehaviour
 				}
 			}
 		}
+    } */
+
+    void Update()
+    {
+        if (AnimateFlag)
+        {
+            timer += Time.deltaTime;
+            if (timer > waitTime)
+            {
+                if (LetterCounter != letterSelection)
+                {
+                    if (LetterCounter < 26)
+                    {
+                        GardenLetters[LetterCounter]
+                            .GetComponent<AnimateGardenLetter>()
+                            .AnimateFlag = 1;
+                    }
+                }
+
+                timer -= waitTime;
+                LetterCounter++;
+                AnimateCounter++;
+
+                if (LetterCounter >= 50)
+                {
+                    LetterCounter = 0;
+                    AnimateFlag = false;
+                    gameLogicObj.SetLetterIndex(letterSelection);
+                    gameLogicObj.PlayGame();
+                }
+            }
+        }
     }
+
+
 }
