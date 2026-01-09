@@ -5,6 +5,8 @@ using UnityEngine.UI;
 using TMPro;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System;
+
 
 public class GameLogic : MonoBehaviour
 {
@@ -89,7 +91,10 @@ public class GameLogic : MonoBehaviour
 	public TextMeshProUGUI monthText;
 	public TextMeshProUGUI alltimeText;
 
-	string todayDateString;
+    public TextMeshProUGUI[] gardenLetterLabels; // size 26, A–Z in order
+
+
+    string todayDateString;
 	public SaveDataObject saveDataObj;
 	public SaveDataObject weekDataObj;
 	public SaveDataObject monthDataObj;
@@ -113,14 +118,22 @@ public class GameLogic : MonoBehaviour
 	public GameObject MusicOffObj;
 	public AudioSource MusicSource;
 
-	// Start is called before the first frame update
-	void Start()
+    public GameObject ResetConfirmPanel;   // optional: confirmation popup (can be null if unused.)
+
+
+    //New variables for new logic!
+    public enum LetterCaseMode { Uppercase, Lowercase, Mixed }
+    public LetterCaseMode letterCaseMode = LetterCaseMode.Lowercase;
+
+
+    // Start is called before the first frame update
+    void Start()
 	{
 		gameState = "StartGame";
 		currentGridClick = -1;
 		// Load Previous Data
 		todayDateString = CreateFilename(0);
-		Debug.Log(todayDateString);
+        UnityEngine.Debug.Log(todayDateString);
 		saveDataObj = new SaveDataObject();
 		saveDataObj.Init();
 		saveDataObj.InitSum();
@@ -128,7 +141,7 @@ public class GameLogic : MonoBehaviour
 		//
 		for (int i = 0; i < 26; i++)
 		{
-			Debug.Log("LP" + saveDataObj.medlevelPlayed[i]);
+            UnityEngine.Debug.Log("LP" + saveDataObj.medlevelPlayed[i]);
 		}
 		//
 		LoadWeekData();
@@ -186,58 +199,93 @@ public class GameLogic : MonoBehaviour
 		}
 	}
 
-	private void LoadData(string _dateName, SaveDataObject _dataObj)
-	{
-		if (File.Exists(Application.persistentDataPath + "/" + _dateName + ".save"))
-		{
-			BinaryFormatter bf = new BinaryFormatter();
-			FileStream file = File.Open(Application.persistentDataPath + "/" + _dateName + ".save", FileMode.Open);
-			Save save = (Save)bf.Deserialize(file);
-			file.Close();
-			//
-			for (int i = 0; i < save.lowlevelPlayed.Count; i++)
-			{
-				_dataObj.lowlevelPlayed[i] += save.lowlevelPlayed[i];
-				_dataObj.medlevelPlayed[i] += save.medlevelPlayed[i];
-				_dataObj.highlevelPlayed[i] += save.highlevelPlayed[i];
-				//
-				_dataObj.lowlevelMiss[i] += save.lowlevelMiss[i];
-				_dataObj.medlevelMiss[i] += save.medlevelMiss[i];
-				_dataObj.highlevelMiss[i] += save.highlevelMiss[i];
-				//
-				_dataObj.lowlevelTime[i] += save.lowlevelTime[i];
-				_dataObj.medlevelTime[i] += save.medlevelTime[i];
-				_dataObj.highlevelTime[i] += save.highlevelTime[i];
-			}
-		}
-		else
-		{
-			Debug.Log("No Save Data");
-		}
-	}
+    private void LoadData(string _dateName, SaveDataObject _dataObj)
+    {
+        string path = Application.persistentDataPath + "/" + _dateName + ".save";
 
-	private Save CreateSaveDataObject()
-	{
-		Save save = new Save();
-		//
-		for (int i = 0; i < 26; i++)
-		{
-			save.lowlevelPlayed.Add(saveDataObj.lowlevelPlayed[i]);
-			save.medlevelPlayed.Add(saveDataObj.medlevelPlayed[i]);
-			save.highlevelPlayed.Add(saveDataObj.highlevelPlayed[i]);
-			//
-			save.lowlevelMiss.Add(saveDataObj.lowlevelMiss[i]);
-			save.medlevelMiss.Add(saveDataObj.medlevelMiss[i]);
-			save.highlevelMiss.Add(saveDataObj.highlevelMiss[i]);
-			//
-			save.lowlevelTime.Add((int)saveDataObj.lowlevelTime[i]);
-			save.medlevelTime.Add((int)saveDataObj.medlevelTime[i]);
-			save.highlevelTime.Add((int)saveDataObj.highlevelTime[i]);
-		}
-		return save;
-	}
+        if (File.Exists(path))
+        {
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream file = File.Open(path, FileMode.Open);
+            Save save = (Save)bf.Deserialize(file);
+            file.Close();
 
-	public void SaveData(string _dateName)
+            // Safety: old files might not have some lists
+            int count = (save.lowlevelPlayed != null) ? save.lowlevelPlayed.Count : 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                // -------- PLAYED --------
+                _dataObj.lowlevelPlayed[i] += save.lowlevelPlayed[i];
+                _dataObj.medlevelPlayed[i] += save.medlevelPlayed[i];
+                _dataObj.highlevelPlayed[i] += save.highlevelPlayed[i];
+
+                // Mixed (new) – only if list exists in this file
+                if (save.mixlevelPlayed != null && save.mixlevelPlayed.Count > i)
+                {
+                    _dataObj.mixlevelPlayed[i] += save.mixlevelPlayed[i];
+                }
+
+                // -------- MISSES --------
+                _dataObj.lowlevelMiss[i] += save.lowlevelMiss[i];
+                _dataObj.medlevelMiss[i] += save.medlevelMiss[i];
+                _dataObj.highlevelMiss[i] += save.highlevelMiss[i];
+
+                if (save.mixlevelMiss != null && save.mixlevelMiss.Count > i)
+                {
+                    _dataObj.mixlevelMiss[i] += save.mixlevelMiss[i];
+                }
+
+                // -------- TIME --------
+                _dataObj.lowlevelTime[i] += save.lowlevelTime[i];
+                _dataObj.medlevelTime[i] += save.medlevelTime[i];
+                _dataObj.highlevelTime[i] += save.highlevelTime[i];
+
+                if (save.mixlevelTime != null && save.mixlevelTime.Count > i)
+                {
+                    _dataObj.mixlevelTime[i] += save.mixlevelTime[i];
+                }
+            }
+        }
+        else
+        {
+            UnityEngine.Debug.Log("No Save Data");
+        }
+    }
+
+
+    private Save CreateSaveDataObject()
+    {
+        Save save = new Save();
+
+        for (int i = 0; i < 26; i++)
+        {
+            // UPPER
+            save.lowlevelPlayed.Add(saveDataObj.lowlevelPlayed[i]);
+            save.lowlevelMiss.Add(saveDataObj.lowlevelMiss[i]);
+            save.lowlevelTime.Add((int)saveDataObj.lowlevelTime[i]);
+
+            // LOWER
+            save.medlevelPlayed.Add(saveDataObj.medlevelPlayed[i]);
+            save.medlevelMiss.Add(saveDataObj.medlevelMiss[i]);
+            save.medlevelTime.Add((int)saveDataObj.medlevelTime[i]);
+
+            // WORDS
+            save.highlevelPlayed.Add(saveDataObj.highlevelPlayed[i]);
+            save.highlevelMiss.Add(saveDataObj.highlevelMiss[i]);
+            save.highlevelTime.Add((int)saveDataObj.highlevelTime[i]);
+
+            // NEW: MIXED
+            save.mixlevelPlayed.Add(saveDataObj.mixlevelPlayed[i]);
+            save.mixlevelMiss.Add(saveDataObj.mixlevelMiss[i]);
+            save.mixlevelTime.Add((int)saveDataObj.mixlevelTime[i]);
+        }
+
+        return save;
+    }
+
+
+    public void SaveData(string _dateName)
 	{
 		Save save = CreateSaveDataObject();
 		//
@@ -252,181 +300,384 @@ public class GameLogic : MonoBehaviour
 		ParseDisplayData(LettersMenu.value - 1, saveDataObj);
 	}
 
-	void ParseDisplayData(int _letterSelect, SaveDataObject _dataObj)
-	{
-		if (_letterSelect == -1)
-		{
-			_dataObj.InitSum();
-			_dataObj.TotalSum();
-			//
-			LevelsText[0].text = _dataObj.lowlevelSum.ToString();
-			LevelsText[1].text = _dataObj.medlevelSum.ToString();
-			LevelsText[2].text = _dataObj.highlevelSum.ToString();
-			//
-			float lowPercent = 0;
-			float medPercent = 0;
-			float highPercent = 0;
-			float totalPercent = 0;
-			if (_dataObj.lowlevelSum != 0)
-			{
-				lowPercent = 100f - (100f * (_dataObj.lowmissSum / (_dataObj.lowlevelSum * 3f + _dataObj.lowmissSum)));
-				Debug.Log(lowPercent);
-			}
-			if (saveDataObj.medlevelSum != 0)
-			{
-				medPercent = 100f - (100f * (_dataObj.medmissSum / (_dataObj.medlevelSum * 3f + _dataObj.medmissSum)));
-			}
-			if (saveDataObj.highlevelSum != 0)
-			{
-				highPercent = 100f - (100f * (_dataObj.highmissSum / (_dataObj.highlevelSum * 3f + _dataObj.highmissSum)));
-			}
-			//
-			PercentText[0].text = lowPercent.ToString("F1");
-			PercentText[1].text = medPercent.ToString("F1");
-			PercentText[2].text = highPercent.ToString("F1");
-			//
-			float lowMinutes = _dataObj.lowtimeSum / 60f;
-			float medMinutes = _dataObj.medtimeSum / 60f;
-			float highMinutes = _dataObj.hightimeSum / 60f;
-			//
-			TimeSpentText[0].text = lowMinutes.ToString("F1");
-			TimeSpentText[1].text = medMinutes.ToString("F1");
-			TimeSpentText[2].text = highMinutes.ToString("F1");
-			//
-			if (_dataObj.levelSum != 0)
-			{
-				totalPercent = 100f - (100f * (_dataObj.missSum / (_dataObj.levelSum * 3f + _dataObj.missSum)));
-			}
-			float totalMinutes = _dataObj.timeSum / 60f;
-			LevelsText[3].text = _dataObj.levelSum.ToString();
-			PercentText[3].text = totalPercent.ToString("F1");
-			TimeSpentText[3].text = totalMinutes.ToString("F1");
-		}
-		else
-		{
-			_dataObj.InitSum();
-			_dataObj.LevelSum(_letterSelect);
-			//
-			LevelsText[0].text = _dataObj.lowlevelPlayed[_letterSelect].ToString();
-			LevelsText[1].text = _dataObj.medlevelPlayed[_letterSelect].ToString();
-			LevelsText[2].text = _dataObj.highlevelPlayed[_letterSelect].ToString();
-			//
-			float lowPercent = 0;
-			float medPercent = 0;
-			float highPercent = 0;
-			float totalPercent = 0;
-			if (_dataObj.lowlevelPlayed[_letterSelect] != 0)
-			{
-				lowPercent = 100f - (100f * (_dataObj.lowlevelMiss[_letterSelect] / (_dataObj.lowlevelPlayed[_letterSelect] * 3f + _dataObj.lowlevelMiss[_letterSelect])));
-			}
-			if (saveDataObj.medlevelPlayed[_letterSelect] != 0)
-			{
-				medPercent = 100f - (100f * (_dataObj.medlevelMiss[_letterSelect] / (_dataObj.medlevelPlayed[_letterSelect] * 3f + _dataObj.medlevelMiss[_letterSelect])));
-			}
-			if (saveDataObj.highlevelPlayed[_letterSelect] != 0)
-			{
-				highPercent = 100f - (100f * (_dataObj.highlevelMiss[_letterSelect] / (_dataObj.highlevelPlayed[_letterSelect] * 3f + _dataObj.highlevelMiss[_letterSelect])));
-			}
-			//
-			PercentText[0].text = lowPercent.ToString("F1");
-			PercentText[1].text = medPercent.ToString("F1");
-			PercentText[2].text = highPercent.ToString("F1");
-			//
-			float lowMinutes = _dataObj.lowlevelTime[_letterSelect] / 60f;
-			float medMinutes = _dataObj.medlevelTime[_letterSelect] / 60f;
-			float highMinutes = _dataObj.highlevelTime[_letterSelect] / 60f;
-			//
-			TimeSpentText[0].text = lowMinutes.ToString("F1");
-			TimeSpentText[1].text = medMinutes.ToString("F1");
-			TimeSpentText[2].text = highMinutes.ToString("F1");
-			//
-			if (_dataObj.levelSum != 0)
-			{
-				totalPercent = 100f - (100f * (_dataObj.missSum / (_dataObj.levelSum * 3f + _dataObj.missSum)));
-			}
-			float totalMinutes = _dataObj.timeSum / 60f;
-			LevelsText[3].text = _dataObj.levelSum.ToString();
-			PercentText[3].text = totalPercent.ToString("F1");
-			TimeSpentText[3].text = totalMinutes.ToString("F1");
-		}
+    void ParseDisplayData(int _letterSelect, SaveDataObject _dataObj)
+    {
+        if (_letterSelect == -1)
+        {
+            _dataObj.InitSum();
+            _dataObj.TotalSum();
 
-	}
+            // PLAYED – per mode
+            LevelsText[0].text = _dataObj.lowlevelSum.ToString();    // Upper
+            LevelsText[1].text = _dataObj.medlevelSum.ToString();    // Lower
+            LevelsText[2].text = _dataObj.mixlevelSum.ToString();    // Mixed
+            LevelsText[3].text = _dataObj.highlevelSum.ToString();   // Words
+            LevelsText[4].text = _dataObj.levelSum.ToString();       // All modes
 
-	// --------------------- Grid Click Event -------------------------------//
+            float lowPercent = 0f;
+            float medPercent = 0f;
+            float mixPercent = 0f;
+            float highPercent = 0f;
+            float totalPercent = 0f;
 
-	public void CheckGridClick(int _gridNumber)
-	{
-		//playLetterAudio(gridObjects[_gridNumber].gridLetter);
-		//
-		if (gridObjects[_gridNumber].gridLetter == currentDisplayLetter)
-		{
+            if (_dataObj.lowlevelSum != 0)
+            {
+                lowPercent = 100f - (100f * (_dataObj.lowmissSum /
+                            (_dataObj.lowlevelSum * 3f + _dataObj.lowmissSum)));
+            }
+            if (_dataObj.medlevelSum != 0)
+            {
+                medPercent = 100f - (100f * (_dataObj.medmissSum /
+                            (_dataObj.medlevelSum * 3f + _dataObj.medmissSum)));
+            }
+            if (_dataObj.mixlevelSum != 0)
+            {
+                mixPercent = 100f - (100f * (_dataObj.mixmissSum /
+                            (_dataObj.mixlevelSum * 3f + _dataObj.mixmissSum)));
+            }
+            if (_dataObj.highlevelSum != 0)
+            {
+                highPercent = 100f - (100f * (_dataObj.highmissSum /
+                            (_dataObj.highlevelSum * 3f + _dataObj.highmissSum)));
+            }
 
-			// AnimateToLetter
-			if (!gridObjects[_gridNumber].clickObjectFlag && gridObjects[_gridNumber].gameObject.activeSelf)
-			{
-				Debug.Log("CORRECT");
-				gridObjects[_gridNumber].clickObjectFlag = true;
-				//
-				starObjects[_gridNumber].GetComponent<Stars>().Animate();
-				// Correct Answer
-				if (levelNumber == 2)
-				{
-					// Play Word Sound
-					playWordAudio(wordDisplayArray[_gridNumber]);
-				}
-				else
-				{
-					// Play Letter Sound
-					playLetterAudio(wordDisplayArray[_gridNumber].Substring(0, 1));
-				}
-				// Decoupled from animation. BV 2/8/24
-				CorrectLetterCounter++;
-				LetterCharacterObj.ShowCharacter(currentLetterPointer);
-				if (currentGridClick == -1)
-				{
-					currentGridClick = _gridNumber;
-					LetterCharacterTransform.localPosition = new Vector3(LetterCharacterTransform.localPosition.x, gridObjects[currentGridClick].transform.localPosition.y, LetterCharacterTransform.localPosition.z);
-					LeanTween.move(LetterCharacterTransform, gridObjects[currentGridClick].transform.localPosition, 0.75f).setOnComplete(OnAnimateOffScreen);
-				}
-				else	// Person clicked too fast. So remove the previous letter and set the next letter to be removed.
-				{
-					gridObjects[currentGridClick].GetComponent<GridObject>().followCharacterFlag = true;
-					currentGridClick = _gridNumber;
-					gridObjects[currentGridClick].GetComponent<GridObject>().followCharacterFlag = true;
-					LeanTween.cancelAll();
-					LeanTween.move(LetterCharacterTransform, gridObjects[currentGridClick].transform.localPosition, 0.75f).setOnComplete(OnAnimateOffScreen);
-				}
-			}
-		}
-		else
-		{
-			Debug.Log("INCORRECT");
-			// Incorrect Answer
-			if (currentGridClick == -1)
-			{
-				playIncorrectAudio();
-				// Shake Letters
-				ShakeGrid();
-				//
-				if (levelNumber == 0)
-				{
-					saveDataObj.lowlevelMiss[currentLetterIndex[letterIndex]] += 1;
-				}
-				if (levelNumber == 1)
-				{
-					saveDataObj.medlevelMiss[currentLetterIndex[letterIndex]] += 1;
-				}
-				if (levelNumber == 2)
-				{
-					saveDataObj.highlevelMiss[currentLetterIndex[letterIndex]] += 1;
-				}
-			}
+            if (_dataObj.levelSum != 0)
+            {
+                totalPercent = 100f - (100f * (_dataObj.missSum /
+                              (_dataObj.levelSum * 3f + _dataObj.missSum)));
+            }
 
-		}
-	}
+            PercentText[0].text = lowPercent.ToString("F1");
+            PercentText[1].text = medPercent.ToString("F1");
+            PercentText[2].text = mixPercent.ToString("F1");
+            PercentText[3].text = highPercent.ToString("F1");
+            PercentText[4].text = totalPercent.ToString("F1");
 
-	// -------------------- Animate Stars FX --------------------------------//
-	public void ResetStars()
+            float lowMinutes = _dataObj.lowtimeSum / 60f;
+            float medMinutes = _dataObj.medtimeSum / 60f;
+            float mixMinutes = _dataObj.mixtimeSum / 60f;
+            float highMinutes = _dataObj.hightimeSum / 60f;
+            float totalMinutes = _dataObj.timeSum / 60f;
+
+            TimeSpentText[0].text = lowMinutes.ToString("F1");
+            TimeSpentText[1].text = medMinutes.ToString("F1");
+            TimeSpentText[2].text = mixMinutes.ToString("F1");
+            TimeSpentText[3].text = highMinutes.ToString("F1");
+            TimeSpentText[4].text = totalMinutes.ToString("F1");
+        }
+        else
+        {
+            _dataObj.InitSum();
+            _dataObj.LevelSum(_letterSelect);
+
+            // PLAYED – this letter
+            LevelsText[0].text = _dataObj.lowlevelPlayed[_letterSelect].ToString();   // Upper
+            LevelsText[1].text = _dataObj.medlevelPlayed[_letterSelect].ToString();   // Lower
+            LevelsText[2].text = _dataObj.mixlevelPlayed[_letterSelect].ToString();   // Mixed
+            LevelsText[3].text = _dataObj.highlevelPlayed[_letterSelect].ToString();  // Words
+            LevelsText[4].text = _dataObj.levelSum.ToString();                        // All
+
+            float lowPercent = 0f;
+            float medPercent = 0f;
+            float mixPercent = 0f;
+            float highPercent = 0f;
+            float totalPercent = 0f;
+
+            if (_dataObj.lowlevelPlayed[_letterSelect] != 0)
+            {
+                lowPercent = 100f - (100f *
+                    (_dataObj.lowlevelMiss[_letterSelect] /
+                    (_dataObj.lowlevelPlayed[_letterSelect] * 3f + _dataObj.lowlevelMiss[_letterSelect])));
+            }
+            if (_dataObj.medlevelPlayed[_letterSelect] != 0)
+            {
+                medPercent = 100f - (100f *
+                    (_dataObj.medlevelMiss[_letterSelect] /
+                    (_dataObj.medlevelPlayed[_letterSelect] * 3f + _dataObj.medlevelMiss[_letterSelect])));
+            }
+            if (_dataObj.mixlevelPlayed[_letterSelect] != 0)
+            {
+                mixPercent = 100f - (100f *
+                    (_dataObj.mixlevelMiss[_letterSelect] /
+                    (_dataObj.mixlevelPlayed[_letterSelect] * 3f + _dataObj.mixlevelMiss[_letterSelect])));
+            }
+            if (_dataObj.highlevelPlayed[_letterSelect] != 0)
+            {
+                highPercent = 100f - (100f *
+                    (_dataObj.highlevelMiss[_letterSelect] /
+                    (_dataObj.highlevelPlayed[_letterSelect] * 3f + _dataObj.highlevelMiss[_letterSelect])));
+            }
+
+            if (_dataObj.levelSum != 0)
+            {
+                totalPercent = 100f - (100f *
+                    (_dataObj.missSum / (_dataObj.levelSum * 3f + _dataObj.missSum)));
+            }
+
+            PercentText[0].text = lowPercent.ToString("F1");
+            PercentText[1].text = medPercent.ToString("F1");
+            PercentText[2].text = mixPercent.ToString("F1");
+            PercentText[3].text = highPercent.ToString("F1");
+            PercentText[4].text = totalPercent.ToString("F1");
+
+            float lowMinutes = _dataObj.lowlevelTime[_letterSelect] / 60f;
+            float medMinutes = _dataObj.medlevelTime[_letterSelect] / 60f;
+            float mixMinutes = _dataObj.mixlevelTime[_letterSelect] / 60f;
+            float highMinutes = _dataObj.highlevelTime[_letterSelect] / 60f;
+            float totalMinutes = _dataObj.timeSum / 60f;
+
+            TimeSpentText[0].text = lowMinutes.ToString("F1");
+            TimeSpentText[1].text = medMinutes.ToString("F1");
+            TimeSpentText[2].text = mixMinutes.ToString("F1");
+            TimeSpentText[3].text = highMinutes.ToString("F1");
+            TimeSpentText[4].text = totalMinutes.ToString("F1");
+        }
+    }
+
+    // ---------------------  Stats Helpers ---------------------------------------//
+
+    // 0 = Upper, 1 = Lower, 2 = Both, 3 = Words
+    private int GetCurrentStatsBucket()
+    {
+        // Words mode still uses the old "hard/words" bucket
+        if (levelNumber == 2)
+        {
+            return 3; // Words column (highlevel*)
+        }
+
+        // Letter modes: route by case
+        switch (letterCaseMode)
+        {
+            case LetterCaseMode.Uppercase:
+                return 0; // Upper -> lowlevel*
+            case LetterCaseMode.Lowercase:
+                return 1; // Lower -> medlevel*
+            case LetterCaseMode.Mixed:
+                return 2; // Both -> mixlevel*
+            default:
+                return 0;
+        }
+    }
+
+    private void AddPlayedStat(int letterIndex)
+    {
+        int bucket = GetCurrentStatsBucket();
+
+        switch (bucket)
+        {
+            case 0: // Upper
+                saveDataObj.lowlevelPlayed[letterIndex] += 1;
+                break;
+            case 1: // Lower
+                saveDataObj.medlevelPlayed[letterIndex] += 1;
+                break;
+            case 2: // Both
+                saveDataObj.mixlevelPlayed[letterIndex] += 1;
+                break;
+            case 3: // Words
+                saveDataObj.highlevelPlayed[letterIndex] += 1;
+                break;
+        }
+    }
+
+    private void AddMissStat(int letterIndex)
+    {
+        int bucket = GetCurrentStatsBucket();
+
+        switch (bucket)
+        {
+            case 0: // Upper
+                saveDataObj.lowlevelMiss[letterIndex] += 1;
+                break;
+            case 1: // Lower
+                saveDataObj.medlevelMiss[letterIndex] += 1;
+                break;
+            case 2: // Both
+                saveDataObj.mixlevelMiss[letterIndex] += 1;
+                break;
+            case 3: // Words
+                saveDataObj.highlevelMiss[letterIndex] += 1;
+                break;
+        }
+    }
+
+    private void AddTimeStat(int letterIndex, float seconds)
+    {
+        int bucket = GetCurrentStatsBucket();
+        int s = Mathf.RoundToInt(seconds);
+
+        switch (bucket)
+        {
+            case 0: // Upper
+                saveDataObj.lowlevelTime[letterIndex] += s;
+                break;
+            case 1: // Lower
+                saveDataObj.medlevelTime[letterIndex] += s;
+                break;
+            case 2: // Both
+                saveDataObj.mixlevelTime[letterIndex] += s;
+                break;
+            case 3: // Words
+                saveDataObj.highlevelTime[letterIndex] += s;
+                break;
+        }
+    }
+
+
+    // ---------------------  Reset Stats (shared tablet)  ---------------------------//
+
+    // Called by the main "Reset Stats" button (shows confirm popup, or resets directly)
+    public void OnResetStatsButton()
+    {
+        // If you don't want a confirmation popup, just call DoResetStats() here.
+        if (ResetConfirmPanel != null)
+        {
+            ResetConfirmPanel.SetActive(true);
+        }
+        else
+        {
+            DoResetStats();
+        }
+    }
+
+    // Called by "Yes" button in confirm popup
+    public void OnConfirmResetYes()
+    {
+        DoResetStats();
+
+        if (ResetConfirmPanel != null)
+            ResetConfirmPanel.SetActive(false);
+    }
+
+    // Called by "No" / "Cancel" button in confirm popup
+    public void OnConfirmResetNo()
+    {
+        if (ResetConfirmPanel != null)
+            ResetConfirmPanel.SetActive(false);
+    }
+
+    // Actual logic that wipes stats + files and refreshes UI
+    private void DoResetStats()
+    {
+        // 1) Delete all saved stat files for this app
+        string path = Application.persistentDataPath;
+        string[] saveFiles = System.IO.Directory.GetFiles(path, "*.save");
+        foreach (var f in saveFiles)
+        {
+            System.IO.File.Delete(f);
+        }
+
+        // 2) Re-init in-memory stat objects
+        saveDataObj.Init();
+        saveDataObj.InitSum();
+
+        weekDataObj.Init();
+        weekDataObj.InitSum();
+
+        monthDataObj.Init();
+        monthDataObj.InitSum();
+
+        // 3) Reload week/month aggregates (everything is zero now anyway,
+        // but this keeps the flow consistent)
+        LoadWeekData();
+        LoadMonthData();
+
+        // 4) If Analytics screen is open, refresh what’s shown
+        ParseDisplayData(-1, saveDataObj);
+
+        UnityEngine.Debug.Log("All stats reset for this device.");
+    }
+
+
+    // --------------------- Grid Click Event -------------------------------//
+
+
+    public void CheckGridClick(int _gridNumber)
+    {
+        // NEW: case-insensitive comparison so A == a
+        if (string.Equals(
+                gridObjects[_gridNumber].gridLetter,
+                currentDisplayLetter,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            // ---------------- CORRECT ----------------
+            if (!gridObjects[_gridNumber].clickObjectFlag && gridObjects[_gridNumber].gameObject.activeSelf)
+            {
+                UnityEngine.Debug.Log("CORRECT");
+                gridObjects[_gridNumber].clickObjectFlag = true;
+
+                starObjects[_gridNumber].GetComponent<Stars>().Animate();
+
+                // Correct Answer
+                if (levelNumber == 2)
+                {
+                    // Play Word Sound
+                    playWordAudio(wordDisplayArray[_gridNumber]);
+                }
+                else
+                {
+                    // Play Letter Sound
+                    playLetterAudio(wordDisplayArray[_gridNumber].Substring(0, 1));
+                }
+
+                // Decoupled from animation. BV 2/8/24
+                CorrectLetterCounter++;
+                LetterCharacterObj.ShowCharacter(currentLetterPointer);
+
+                if (currentGridClick == -1)
+                {
+                    currentGridClick = _gridNumber;
+                    LetterCharacterTransform.localPosition = new Vector3(
+                        LetterCharacterTransform.localPosition.x,
+                        gridObjects[currentGridClick].transform.localPosition.y,
+                        LetterCharacterTransform.localPosition.z);
+
+                    LeanTween
+                        .move(LetterCharacterTransform,
+                              gridObjects[currentGridClick].transform.localPosition,
+                              0.75f)
+                        .setOnComplete(OnAnimateOffScreen);
+                }
+                else // Person clicked too fast. So remove the previous letter and set the next letter to be removed.
+                {
+                    gridObjects[currentGridClick].GetComponent<GridObject>().followCharacterFlag = true;
+                    currentGridClick = _gridNumber;
+                    gridObjects[currentGridClick].GetComponent<GridObject>().followCharacterFlag = true;
+
+                    LeanTween.cancelAll();
+                    LeanTween
+                        .move(LetterCharacterTransform,
+                              gridObjects[currentGridClick].transform.localPosition,
+                              0.75f)
+                        .setOnComplete(OnAnimateOffScreen);
+                }
+            }
+        }
+        else
+        {
+            // ---------------- INCORRECT ----------------
+            UnityEngine.Debug.Log("INCORRECT");
+
+            if (currentGridClick == -1)
+            {
+                playIncorrectAudio();
+                ShakeGrid();
+
+                // Single-letter mode safety
+                int statsLetter = (currentLetterIndex != null && currentLetterIndex.Length > 0)
+                    ? currentLetterIndex[0]
+                    : currentLetterPointer;
+
+                // NEW: route miss into the correct bucket (Upper / Lower / Both / Words)
+                AddMissStat(statsLetter);
+            }
+        }
+    }
+
+
+
+    // -------------------- Animate Stars FX --------------------------------//
+    public void ResetStars()
 	{
 		for (int i = 0; i < 6; i++)
 		{
@@ -448,42 +699,92 @@ public class GameLogic : MonoBehaviour
 		}
 	}
 
-	public void SetGridObjectDisplays()
-	{
-		for (int i = 0; i < 6; i++)
-		{
-			gridObjects[i].gridLetter = wordDisplayArray[i].Substring(0, 1);
-			gridObjects[i].gridWord = wordDisplayArray[i];
-			if (levelNumber == 2)
-			{
-				// Hard Level
-				gridObjects[i].DisplayWordText(gridObjects[i].gridWord);
-				gridObjects[i].DisplayWordImage(gridObjects[i].gridWord);
-				gridObjects[i].gridImage.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-				//gridObjects[i].DisplayLetterImage("");
-				gridObjects[i].ClearLetterImage();
-			}
-			if (levelNumber == 1)
-			{
-				// Med Level
-				gridObjects[i].DisplayWordText(gridObjects[i].gridWord.Substring(0, 1));
-				gridObjects[i].DisplayWordImage(gridObjects[i].gridWord);
-				gridObjects[i].gridImage.color = new Color(1.0f, 1.0f, 1.0f, 0.6f);
-				//gridObjects[i].DisplayLetterImage("");
-				gridObjects[i].ClearLetterImage();
-			}
-			if (levelNumber == 0)
-			{
-				// Easy Level
-				gridObjects[i].ClearWordImage();
-				gridObjects[i].ClearWordText();
-				gridObjects[i].DisplayLetterImage(gridObjects[i].gridWord.Substring(0, 1));
-			}
-		}
-	}
-	// ---------------------  Alphabet Content Selection ----------------------//
+    public void SetGridObjectDisplays()
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            GridObject go = gridObjects[i];
 
-	private void GenerateVocabularyList()
+            // Word for this tile
+            go.gridWord = wordDisplayArray[i];
+
+            // Logical letter for checks/stats – always lowercase
+            string baseLetter = go.gridWord.Substring(0, 1).ToLower();
+            go.gridLetter = baseLetter;
+
+            // How we want the letter to LOOK to the player
+            string visualLetter = baseLetter;
+
+            // Letter-case styling only matters in letter modes (not full-word mode)
+            if (levelNumber != 2)
+            {
+                switch (letterCaseMode)
+                {
+                    case LetterCaseMode.Uppercase:
+                        visualLetter = baseLetter.ToUpper();
+                        break;
+
+                    case LetterCaseMode.Lowercase:
+                        visualLetter = baseLetter.ToLower();
+                        break;
+
+                    case LetterCaseMode.Mixed:
+                        bool showUpper = UnityEngine.Random.value > 0.5f;
+                        visualLetter = showUpper ? baseLetter.ToUpper() : baseLetter.ToLower();
+                        break;
+                }
+            }
+
+            // ----------------- MODE 4: FULL WORDS (levelNumber == 2) -----------------
+            if (levelNumber == 2)
+            {
+                // Hide letter TMP (we’re showing full words here)
+                go.ClearLetterText();
+
+                // Original “hard mode” behavior
+                go.DisplayWordText(go.gridWord);
+                go.DisplayWordImage(go.gridWord);
+                go.gridImage.color = new Color(1f, 1f, 1f, 1f);
+
+                // No letter sprite needed
+                go.ClearLetterImage();
+            }
+            else
+            {
+                // ----------------- MODES 1–3: LETTER MODES -----------------
+
+                // Show letter via TMP so we can do upper / lower / mixed
+                go.DisplayLetterText(visualLetter);
+
+                // We don’t need word text in letter modes
+                go.ClearWordText();
+
+                // If you still want a “medium” style that shows the picture,
+                // keep this branch. If you’re not using level 1 anymore,
+                // everything will fall into the "else" case and be letter-only.
+                if (levelNumber == 1)
+                {
+                    // Letter + image
+                    go.DisplayWordImage(go.gridWord);
+                    go.gridImage.color = new Color(1f, 1f, 1f, 0.6f);
+                }
+                else
+                {
+                    // Letter only
+                    go.ClearWordImage();
+                    go.gridImage.color = new Color(1f, 1f, 1f, 1f);
+                }
+
+                // We’re using TMP for the letter, so blank out the letter sprite slot
+                go.ClearLetterImage();
+            }
+        }
+    }
+
+
+    // ---------------------  Alphabet Content Selection ----------------------//
+
+    private void GenerateVocabularyList()
 	{
 		letterList = new string[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
 		//
@@ -547,7 +848,7 @@ public class GameLogic : MonoBehaviour
 	{
 		for (int i = _words.Length - 1; i > 0; i--)
 		{
-			int r = Random.Range(0, i + 1);
+			int r = UnityEngine.Random.Range(0, i + 1);
 			string tmp = _words[i];
 			_words[i] = _words[r];
 			_words[r] = tmp;
@@ -558,36 +859,86 @@ public class GameLogic : MonoBehaviour
 	{
 		for (int i = _words.Count - 1; i > 0; i--)
 		{
-			int r = Random.Range(0, i + 1);
+			int r = UnityEngine.Random.Range(0, i + 1);
 			string tmp = _words[i];
 			_words[i] = _words[r];
 			_words[r] = tmp;
 		}
 	}
 
-	public void SetLetterIndex(int _num)
-	{
-		currentLetterIndex = new int[] { _num, _num + 1, _num + 2 };
-		if (_num == 24)
-		{
-			currentLetterIndex = new int[] { _num, _num + 1, 0 };
-		}
-		if (_num == 25)
-		{
-			currentLetterIndex = new int[] { _num, 0, 1 };
-		}
-	}
+    private void UpdateGardenLetterVisuals()
+    {
+        if (gardenLetterLabels == null || gardenLetterLabels.Length == 0)
+            return;
 
-	public void SetCurrentLetter(int _num)
-	{
-		currentLetterPointer = _num;
-		currentDisplayLetter = letterList[_num];
-		string imageFilename = "Letters/" + currentDisplayLetter + "_letter";
-		DisplayLetterText.sprite = Resources.Load<Sprite>(imageFilename);
-		//DisplayLetterText.text = currentDisplayLetter.ToUpper();
-	}
+        for (int i = 0; i < gardenLetterLabels.Length; i++)
+        {
+            char baseLetter = (char)('a' + i); // 0 -> 'a', 1 -> 'b', etc.
+            string letter = baseLetter.ToString();
 
-	public void GenerateRandomDisplayList()
+            switch (letterCaseMode)
+            {
+                case LetterCaseMode.Uppercase:
+                    gardenLetterLabels[i].text = letter.ToUpper();
+                    break;
+
+                case LetterCaseMode.Lowercase:
+                    gardenLetterLabels[i].text = letter.ToLower();
+                    break;
+
+                case LetterCaseMode.Mixed:
+                    gardenLetterLabels[i].text =
+                        UnityEngine.Random.value > 0.5f
+                            ? letter.ToUpper()
+                            : letter.ToLower();
+                    break;
+            }
+        }
+    }
+
+
+    // Task 02: Single-letter mode
+    // Previously supported 3-letter clusters with wrap-around (Y/Z → A/B).
+    // Now intentionally restricted to one letter per round.
+    public void SetLetterIndex(int _num)
+    {
+        currentLetterIndex = new int[] { _num };
+        letterIndex = 0;
+    }
+
+/*public void SetLetterIndex(int _num)
+{
+    currentLetterIndex = new int[] { _num, _num + 1, _num + 2 };
+    if (_num == 24)
+    {
+        currentLetterIndex = new int[] { _num, _num + 1, 0 };
+    }
+    if (_num == 25)
+    {
+        currentLetterIndex = new int[] { _num, 0, 1 };
+    }
+}
+*/
+
+
+public void SetCurrentLetter(int _num)
+{
+    currentLetterPointer = _num;
+
+    // Canonical logical letter (always lowercase)
+    currentDisplayLetter = letterList[_num].ToLower();
+
+    // Sprites are named using the base (lowercase) letter
+    string imageFilename = "Letters/" + currentDisplayLetter + "_letter";
+    DisplayLetterText.sprite = Resources.Load<Sprite>(imageFilename);
+
+    // If you ever switch to text instead of an image for the big letter,
+    // you could apply letterCaseMode here to control its visual case.
+    // e.g. DisplayLetterTextTMP.text = ...;
+}
+
+
+public void GenerateRandomDisplayList()
 	{
 		// Put all correct words in ArrayList
 		List<string> randomCorrectWords = new List<string>();
@@ -684,7 +1035,7 @@ public class GameLogic : MonoBehaviour
 	public void playCorrectAudio()
 	{
 		AudioSource audioPlay = gameObject.GetComponent<AudioSource>();
-		int audioIndex = Random.Range(0, correctAudioArray.Length);
+		int audioIndex = UnityEngine.Random.Range(0, correctAudioArray.Length);
 		string audioFilename = "Correct/" + correctAudioArray[audioIndex];
 		audioPlay.PlayOneShot((AudioClip)Resources.Load(audioFilename));
 	}
@@ -693,7 +1044,7 @@ public class GameLogic : MonoBehaviour
 	public void playIncorrectAudio()
 	{
 		AudioSource audioPlay = gameObject.GetComponent<AudioSource>();
-		int audioIndex = Random.Range(0, incorrectAudioArray.Length);
+		int audioIndex = UnityEngine.Random.Range(0, incorrectAudioArray.Length);
 		string audioFilename = "Incorrect/" + incorrectAudioArray[audioIndex];
 		audioPlay.PlayOneShot((AudioClip)Resources.Load(audioFilename));
 	}
@@ -734,9 +1085,9 @@ public class GameLogic : MonoBehaviour
 		{
 
 			ResetGrid();
-			letterIndex = 0;
-			SetCurrentLetter(currentLetterIndex[letterIndex]);
-			StopGardenAnimate();
+            letterIndex = 0;
+            SetCurrentLetter(currentLetterIndex[0]);
+            StopGardenAnimate();
 			GardenScreen.SetActive(false);
 			SetupGrid();
 			gameState = "PlayGame";
@@ -771,13 +1122,45 @@ public class GameLogic : MonoBehaviour
 		gameState = "LevelSelect";
 	}
 
-	public void ChooseLevel(int _level)
-	{
-		levelNumber = _level;
-		gameState = "AnimateGarden";
-	}
+    public void ChooseLevel(int menuChoice)
+    {
+        // menuChoice comes from the Button's OnClick() parameter
 
-	public void ClearGlows()
+        switch (menuChoice)
+        {
+            case 0: // Uppercase letters
+                letterCaseMode = LetterCaseMode.Uppercase;
+                levelNumber = 0;              // letter layout
+                break;
+
+            case 1: // Lowercase letters
+                letterCaseMode = LetterCaseMode.Lowercase;
+                levelNumber = 0;              // letter layout (same layout, different look)
+                break;
+
+            case 2: // Mixed upper + lower letters
+                letterCaseMode = LetterCaseMode.Mixed;
+                levelNumber = 0;              // still the letter layout
+                break;
+
+            case 3: // Full words
+                    // Case mode doesn't matter here; we use full-word layout
+                levelNumber = 2;              // the existing "hard / word" layout
+                break;
+
+            default:
+                // Safety fallback
+                letterCaseMode = LetterCaseMode.Lowercase;
+                levelNumber = 0;
+                break;
+        }
+
+        UpdateGardenLetterVisuals();
+        gameState = "AnimateGarden";
+    }
+
+
+    public void ClearGlows()
 	{
 		GameObject[] gos;
 		gos = GameObject.FindGameObjectsWithTag("Glow");
@@ -826,7 +1209,7 @@ public class GameLogic : MonoBehaviour
 		switch (_timeScale)
 		{
 			case 0:
-				Debug.Log("DAY");
+                UnityEngine.Debug.Log("DAY");
 				ParseDisplayData(-1, saveDataObj);
 				//
 				todayText.color = new Color(1f, 1f, 0.25f);
@@ -835,7 +1218,7 @@ public class GameLogic : MonoBehaviour
 				alltimeText.color = new Color(1f, 1f, 1f);
 				break;
 			case 1:
-				Debug.Log("Week");
+                UnityEngine.Debug.Log("Week");
 				ParseDisplayData(-1, weekDataObj);
 				//
 				todayText.color = new Color(1f, 1f, 1f);
@@ -844,7 +1227,7 @@ public class GameLogic : MonoBehaviour
 				alltimeText.color = new Color(1f, 1f, 1f);
 				break;
 			case 2:
-				Debug.Log("Month!");
+                UnityEngine.Debug.Log("Month!");
 				ParseDisplayData(-1, monthDataObj);
 				//
 				todayText.color = new Color(1f, 1f, 1f);
@@ -905,7 +1288,7 @@ public class GameLogic : MonoBehaviour
 
 	public void SelectGridButton(int _buttonNumber)
 	{
-		Debug.Log("Num : " + _buttonNumber);
+        UnityEngine.Debug.Log("Num : " + _buttonNumber);
 		// Check Answer / Play Sound
 		CheckGridClick(_buttonNumber);
 	}
@@ -970,12 +1353,12 @@ public class GameLogic : MonoBehaviour
 
 	void ShakeGrid()
 	{
-		LeanTween.move(gridTransforms[0], new Vector3(gridTransforms[0].localPosition.x + Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[0].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[1], new Vector3(gridTransforms[1].localPosition.x + Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[1].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[2], new Vector3(gridTransforms[2].localPosition.x + Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[2].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[3], new Vector3(gridTransforms[3].localPosition.x + Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[3].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[4], new Vector3(gridTransforms[4].localPosition.x + Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[4].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[5], new Vector3(gridTransforms[5].localPosition.x + Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[5].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
+		LeanTween.move(gridTransforms[0], new Vector3(gridTransforms[0].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[0].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
+		LeanTween.move(gridTransforms[1], new Vector3(gridTransforms[1].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[1].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
+		LeanTween.move(gridTransforms[2], new Vector3(gridTransforms[2].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[2].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
+		LeanTween.move(gridTransforms[3], new Vector3(gridTransforms[3].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[3].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
+		LeanTween.move(gridTransforms[4], new Vector3(gridTransforms[4].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[4].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
+		LeanTween.move(gridTransforms[5], new Vector3(gridTransforms[5].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[5].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
 	}
 
 	void ResetGrid()
@@ -1012,61 +1395,50 @@ public class GameLogic : MonoBehaviour
 		gridTransforms[5].localPosition = new Vector3(164f, -103f, 0f);
 	}
 
-	void OnResetPlayScreen()
-	{
-		elapsedTime = Time.time - startTime;
-		if (levelNumber == 0)
-		{
-			saveDataObj.lowlevelPlayed[currentLetterIndex[letterIndex]] += 1;
-			saveDataObj.lowlevelTime[currentLetterIndex[letterIndex]] += (int)elapsedTime;
-		}
-		if (levelNumber == 1)
-		{
-			saveDataObj.medlevelPlayed[currentLetterIndex[letterIndex]] += 1;
-			saveDataObj.medlevelTime[currentLetterIndex[letterIndex]] += (int)elapsedTime;
-		}
-		if (levelNumber == 2)
-		{
-			saveDataObj.highlevelPlayed[currentLetterIndex[letterIndex]] += 1;
-			saveDataObj.highlevelTime[currentLetterIndex[letterIndex]] += (int)elapsedTime;
-		}
-		//
-		letterIndex++;
-		if (letterIndex < currentLetterIndex.Length)
-		{
-			ResetGrid();
-			SetCurrentLetter(currentLetterIndex[letterIndex]);
-			SetupGrid();
-			//
-			gameState = "PlayGame";
-		}
-		else
-		{
-			letterIndex = 0;
-			if (AnimationBreakNumber == 0)
-			{
-				RandomCharIndex1 = (int)Random.Range(0, 25);
-				RandomCharIndex2 = (int)Random.Range(0, 25);
-				RandomLetterIndex = (int)Random.Range(0, 25);
-				RandomItemIndex = (int)Random.Range(0, wordsListArray[RandomLetterIndex].Count - 1);
-				//
-				AnimateCharacter1Obj.ShowCharacter(RandomCharIndex1);
-				AnimateCharacter2Obj.ShowCharacter(RandomCharIndex2);
-				AnimateObject.DisplayWordImage(wordsListArray[RandomLetterIndex][RandomItemIndex]);
-			}
-			if (AnimationBreakNumber < 3)
-			{
-				SaveData(todayDateString);
-				gameState = "AnimationBreak";
-			}
-			else
-			{
-				StopPlayGame();
-			}
-		}
-	}
+    void OnResetPlayScreen()
+    {
+        elapsedTime = Time.time - startTime;
 
-	void StartAnimation(int _animationNumber)
+        // Single-letter mode safety: always record against the active letter
+        int statsLetter = (currentLetterIndex != null && currentLetterIndex.Length > 0)
+            ? currentLetterIndex[0]
+            : currentLetterPointer; // fallback
+
+        // NEW: record stats using the current bucket (Upper / Lower / Both / Words)
+        AddPlayedStat(statsLetter);
+        AddTimeStat(statsLetter, elapsedTime);
+
+        // Task 02: Remove multi-letter cluster progression
+        letterIndex = 0;
+
+        // Proceed with the existing flow (animation break / stop)
+        if (AnimationBreakNumber == 0)
+        {
+            RandomCharIndex1 = (int)UnityEngine.Random.Range(0, 25);
+            RandomCharIndex2 = (int)UnityEngine.Random.Range(0, 25);
+            RandomLetterIndex = (int)UnityEngine.Random.Range(0, 25);
+            RandomItemIndex = (int)UnityEngine.Random
+                .Range(0, wordsListArray[RandomLetterIndex].Count - 1);
+
+            AnimateCharacter1Obj.ShowCharacter(RandomCharIndex1);
+            AnimateCharacter2Obj.ShowCharacter(RandomCharIndex2);
+            AnimateObject.DisplayWordImage(
+                wordsListArray[RandomLetterIndex][RandomItemIndex]);
+        }
+
+        if (AnimationBreakNumber < 3)
+        {
+            SaveData(todayDateString);
+            gameState = "AnimationBreak";
+        }
+        else
+        {
+            StopPlayGame();
+        }
+    }
+
+
+    void StartAnimation(int _animationNumber)
 	{
 		switch (_animationNumber)
 		{
@@ -1118,24 +1490,30 @@ public class GameLogic : MonoBehaviour
 		LeanTween.move(AnimateCharacter1Transform, offScreenPosition, 1.25f).setOnComplete(OnAnimateBreakEnd);
 	}
 
-	void OnAnimateBreakEnd()
-	{
-		AnimationBreakNumber++;
-		if (AnimationBreakNumber < 3)
-		{
-			ResetGrid();
-			SetCurrentLetter(currentLetterIndex[letterIndex]);
-			SetupGrid();
-			//
-			gameState = "PlayGame";
-		}
-		else
-		{
-			StopPlayGame();
-		}
-	}
+    void OnAnimateBreakEnd()
+    {
+        AnimationBreakNumber++;
+        if (AnimationBreakNumber < 3)
+        {
+            ResetGrid();
 
-	void AnimationBreak2()
+            letterIndex = 0;
+            int nextLetter = (currentLetterIndex != null && currentLetterIndex.Length > 0)
+                ? currentLetterIndex[0]
+                : currentLetterPointer;
+
+            SetCurrentLetter(nextLetter);
+
+            SetupGrid();
+            gameState = "PlayGame";
+        }
+        else
+        {
+            StopPlayGame();
+        }
+    }
+
+    void AnimationBreak2()
 	{
 		// Move On Screen
 		Vector3 onScreenPosition = new Vector3(-100f, AnimateCharacter1Transform.localPosition.y, AnimateCharacter1Transform.localPosition.z);
