@@ -120,6 +120,11 @@ public class GameLogic : MonoBehaviour
 
     public GameObject ResetConfirmPanel;   // optional: confirmation popup (can be null if unused.)
 
+    //PlayScene Letter Box Variable
+    // Pop animation base sizes
+    private Vector2 baseGridSize;
+    private Vector2 baseLetterSize;
+
     //Audio Logic variables: 
     // Main VO source (same AudioSource you've been using on this GameObject)
     [SerializeField] private AudioSource voSource;
@@ -162,6 +167,10 @@ public class GameLogic : MonoBehaviour
         playVOAudio("title_new");
         //
         toggleMusicOn();
+        //save the box and letter size
+        baseGridSize = DisplayGridTransform.sizeDelta;
+        baseLetterSize = DisplayLetterTransform.sizeDelta;
+
     }
     // --------------------- Load/Save Usage Data ---------------------------//
 
@@ -1741,18 +1750,27 @@ public class GameLogic : MonoBehaviour
 				//gardenLogicObj.AnimateFlag = true;
 				gameState = "AnimateGardenWait";
 				break;
-			case "PlayGame":
-				startTime = Time.time;
-				UpdateScreenDisplay();
-				// Pop size of Letter
-				LeanTween.size(DisplayGridTransform, DisplayGridTransform.sizeDelta * 1.1f, 0.75f).setDelay(0.5f).setEaseInOutCirc().setRepeat(4).setLoopPingPong();
-				LeanTween.size(DisplayLetterTransform, DisplayLetterTransform.sizeDelta * 1.1f, 0.75f).setDelay(0.5f).setEaseInOutCirc().setRepeat(4).setLoopPingPong();
-				// VO Instructions
-				audioPlayIntro = true;
-				playVOAudio("touch_and_say_letter");
-				gameState = "PlayerSelectLetter";
-				break;
-			case "PlayerSelectLetter":
+            case "PlayGame":
+                startTime = Time.time;
+                UpdateScreenDisplay();
+
+                // Ensure we start from the original base sizes each session
+                DisplayGridTransform.sizeDelta = baseGridSize;
+                DisplayLetterTransform.sizeDelta = baseLetterSize;
+
+                // Pop size of Letter (always relative to the base)
+                LeanTween.size(DisplayGridTransform, baseGridSize * 1.1f, 0.75f)
+                    .setDelay(0.5f).setEaseInOutCirc().setRepeat(4).setLoopPingPong();
+
+                LeanTween.size(DisplayLetterTransform, baseLetterSize * 1.1f, 0.75f)
+                    .setDelay(0.5f).setEaseInOutCirc().setRepeat(4).setLoopPingPong();
+
+                // VO Instructions
+                audioPlayIntro = true;
+                playVOAudio("touch_and_say_letter");
+                gameState = "PlayerSelectLetter";
+                break;
+            case "PlayerSelectLetter":
 				if (audioPlayIntro)
 				{
 					AudioSource audioIntro = gameObject.GetComponent<AudioSource>();
