@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,6 +20,7 @@ public class GardenLogic : MonoBehaviour
 	public GameObject[] playchars;
 	
 	float timer;
+	[SerializeField] private float baseWaitTime = 0.1f; // now tunable in inspector
 	float waitTime;
 	int letterSelection;
 	
@@ -29,19 +31,34 @@ public class GardenLogic : MonoBehaviour
     }
 	
 	public void SelectRandomLetters(){
-		randomLetterIndex = Random.Range(0,23);
+		randomLetterIndex = UnityEngine.Random.Range(0,23);
 		AnimateStop = 51 + randomLetterIndex;
 	}
 	
-	public void ResetVars(){
+	public void ResetVars()
+	{
 		timer = 0f;
-		waitTime = 0.1f;
+
+		//base cadance for letter spawning in the garden.
+		//lower than 0.1f = faster, but still readable.
+		float difficultyFactor = 1f;
+
+		//Optional: scale speed a bit with difficulty/level
+		if (gameLogicObj != null)
+		{
+			//Example: if levelNumber goes 0,1,2..., make higher levels a bit faster
+			// Clamp01 keeps it in [0,1] so we dont go wild.
+			float t = Mathf.Clamp01(gameLogicObj.levelNumber / 3f);
+			difficultyFactor = Mathf.Lerp(1.0f, 0.7f, t); // up to 30% faster on harder levels.
+		}
+
+		waitTime = baseWaitTime * difficultyFactor;
+
 		LetterCounter = 0;
 		AnimateCounter = 0;
 		SelectRandomLetters();
 		StopCounter = 0;
 		AnimateFlag = false;
-		//
 		letterSelection = -1;
 	}
 	
@@ -148,7 +165,7 @@ public class GardenLogic : MonoBehaviour
                 LetterCounter++;
                 AnimateCounter++;
 
-                if (LetterCounter >= 50)
+                if (LetterCounter >= 30)
                 {
                     LetterCounter = 0;
                     AnimateFlag = false;
