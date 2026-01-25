@@ -7,24 +7,20 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System;
 
-
 public class GameLogic : MonoBehaviour
 {
     public GardenLogic gardenLogicObj;
     public LetterCharacterAnimate LetterCharacterObj;
     public RectTransform LetterCharacterTransform;
-    //
     public LetterCharacterAnimate AnimateCharacter1Obj;
     public RectTransform AnimateCharacter1Transform;
     public LetterCharacterAnimate AnimateCharacter2Obj;
     public RectTransform AnimateCharacter2Transform;
     public ImageObject AnimateObject;
     public RectTransform AnimateObjectTransform;
-    //
     public string gameState;
     public string characterSelection;
     public int levelNumber;
-
     public GameObject StartScreen;
     public GameObject CharacterScreen;
     public GameObject LevelScreen;
@@ -32,7 +28,6 @@ public class GameLogic : MonoBehaviour
     public GameObject PlayScreen;
     public GameObject AnimateScreen;
     public GameObject AnalyticsScreen;
-
     private List<string> aWordList;
     private List<string> bWordList;
     private List<string> cWordList;
@@ -59,88 +54,67 @@ public class GameLogic : MonoBehaviour
     private List<string> xWordList;
     private List<string> yWordList;
     private List<string> zWordList;
-
     private List<string>[] wordsListArray;
-
     private string[] letterList;
-
     private string[] wordDisplayArray;
     private string currentDisplayLetter;
     private int[] currentLetterIndex;
     private int currentLetterPointer;
-
     private string[] correctAudioArray;
     private string[] incorrectAudioArray;
-
     public GridObject[] gridObjects;
     public RectTransform[] gridTransforms;
     public Image DisplayLetterText;
     public RectTransform DisplayGridTransform;
     public RectTransform DisplayLetterTransform;
     public GameObject[] starObjects;
-
     public int currentGridClick;
-
     int CorrectLetterCounter;
     int CorrectLetterTotal;
     int letterIndex;
     bool audioPlayIntro;
-
     public TextMeshProUGUI todayText;
     public TextMeshProUGUI weekText;
     public TextMeshProUGUI monthText;
     public TextMeshProUGUI alltimeText;
-
     public TextMeshProUGUI[] gardenLetterLabels; // size 26, A–Z in order
-
-
     string todayDateString;
     public SaveDataObject saveDataObj;
     public SaveDataObject weekDataObj;
     public SaveDataObject monthDataObj;
-
     public float startTime;
     public float elapsedTime;
-
     public TextMeshProUGUI[] LevelsText;
     public TextMeshProUGUI[] PercentText;
     public TextMeshProUGUI[] TimeSpentText;
-
     public TMPro.TMP_Dropdown LettersMenu;
-
     public int AnimationBreakNumber;
     public int RandomCharIndex1;
     public int RandomCharIndex2;
     public int RandomLetterIndex;
     public int RandomItemIndex;
-
     public GameObject MusicOnObj;
     public GameObject MusicOffObj;
     public AudioSource MusicSource;
-
     public GameObject ResetConfirmPanel;   // optional: confirmation popup (can be null if unused.)
-
     //PlayScene Letter Box Variable
     // Pop animation base sizes
     private Vector2 baseGridSize;
     private Vector2 baseLetterSize;
-
     //Audio Logic variables: 
     // Main VO source (same AudioSource you've been using on this GameObject)
     [SerializeField] private AudioSource voSource;
-
     // Track what we last played so we can avoid spam
     private string currentVOKey = null;
     private float lastVOStartTime = -999f;
-
     // Tweak these in the Inspector if needed
     [SerializeField] private float sameLineCooldown = 0.5f;   // Same line cannot replay within 0.5s
     [SerializeField] private float minGapBetweenLines = 0.1f; // Tiny gap between any two VO lines
-
-
     //New variables for new logic!
     public enum LetterCaseMode { Uppercase, Lowercase, Mixed }
     public LetterCaseMode letterCaseMode = LetterCaseMode.Lowercase;
+    // Cache "home" positions for each tile
+    private Vector3[] gridBasePositions;
 
 
     // Start is called before the first frame update
@@ -155,17 +129,13 @@ public class GameLogic : MonoBehaviour
         saveDataObj.Init();
         saveDataObj.InitSum();
         LoadData(todayDateString, saveDataObj);
-        //
         for (int i = 0; i < 26; i++)
         {
             UnityEngine.Debug.Log("LP" + saveDataObj.medlevelPlayed[i]);
         }
-        //
         LoadWeekData();
         LoadMonthData();
-        //
         playVOAudio("title_new");
-        //
         toggleMusicOn();
         //save the box and letter size
         baseGridSize = DisplayGridTransform.sizeDelta;
@@ -274,7 +244,6 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-
     private Save CreateSaveDataObject()
     {
         Save save = new Save();
@@ -304,7 +273,6 @@ public class GameLogic : MonoBehaviour
 
         return save;
     }
-
 
     public void SaveData(string _dateName)
     {
@@ -544,7 +512,6 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-
     // ---------------------  Reset Stats (shared tablet)  ---------------------------//
 
     // Called by the main "Reset Stats" button (shows confirm popup, or resets directly)
@@ -609,9 +576,7 @@ public class GameLogic : MonoBehaviour
         UnityEngine.Debug.Log("All stats reset for this device.");
     }
 
-
     // --------------------- Grid Click Event -------------------------------//
-
 
     public void CheckGridClick(int _gridNumber)
     {
@@ -694,8 +659,6 @@ public class GameLogic : MonoBehaviour
             }
         }
     }
-
-
 
     // -------------------- Animate Stars FX --------------------------------//
     public void ResetStars()
@@ -801,7 +764,6 @@ public class GameLogic : MonoBehaviour
             }
         }
     }
-
 
     // ---------------------  Alphabet Content Selection ----------------------//
 
@@ -917,7 +879,6 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-
     // Task 02: Single-letter mode
     // Previously supported 3-letter clusters with wrap-around (Y/Z → A/B).
     // Now intentionally restricted to one letter per round.
@@ -941,8 +902,6 @@ public class GameLogic : MonoBehaviour
     }
     */
     
-
-
     public void SetCurrentLetter(int _num)
     {
         currentLetterPointer = _num;
@@ -958,7 +917,6 @@ public class GameLogic : MonoBehaviour
         // you could apply letterCaseMode here to control its visual case.
         // e.g. DisplayLetterTextTMP.text = ...;
     }
-
 
     public void GenerateRandomDisplayList()
 	{
@@ -1072,7 +1030,6 @@ public class GameLogic : MonoBehaviour
         currentVOKey = null;
     }
 
-
     // put audio into ArrayList
     private void InitAudioAssets()
 	{
@@ -1092,7 +1049,6 @@ public class GameLogic : MonoBehaviour
 
         PlayVOClip(clip, key);
     }
-
 
     // play alphabet character audio
     public void playCharacterAudio(int _filenum)
@@ -1115,8 +1071,6 @@ public class GameLogic : MonoBehaviour
         PlayVOClip(clip, key);
     }
 
-
-
     // play alphabet letter audio
     public void playLetterAudio(string _filename)
     {
@@ -1129,7 +1083,6 @@ public class GameLogic : MonoBehaviour
 
         PlayVOClip(clip, key);
     }
-
 
     // play word audio
     public void playWordAudio(string _filename)
@@ -1145,7 +1098,6 @@ public class GameLogic : MonoBehaviour
 
         PlayVOClip(clip, key);
     }
-
 
     public void playCorrectAudio()
     {
@@ -1178,7 +1130,6 @@ public class GameLogic : MonoBehaviour
         PlayVOClip(clip, key);
     }
 
-
     // play incorrect audio
     public void playIncorrectAudio()
     {
@@ -1192,7 +1143,6 @@ public class GameLogic : MonoBehaviour
         AudioClip clip = Resources.Load<AudioClip>(audioFilename);
         PlayVOClip(clip, key);
     }
-
 
     public void toggleMusicOn()
 	    {
@@ -1303,7 +1253,6 @@ public class GameLogic : MonoBehaviour
         UpdateGardenLetterVisuals();
         gameState = "AnimateGarden";
     }
-
 
     public void ClearGlows()
 	{
@@ -1496,17 +1445,41 @@ public class GameLogic : MonoBehaviour
 		}
 	}
 
-	void ShakeGrid()
-	{
-		LeanTween.move(gridTransforms[0], new Vector3(gridTransforms[0].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[0].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[1], new Vector3(gridTransforms[1].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[1].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[2], new Vector3(gridTransforms[2].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[2].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[3], new Vector3(gridTransforms[3].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[3].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[4], new Vector3(gridTransforms[4].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[4].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[5], new Vector3(gridTransforms[5].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[5].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-	}
+    void ShakeGrid()
+    {
+        const float shakeMagnitude = 40f;  // same intensity you had before
+        const float duration = 0.15f;
+        const int repeatCount = 8;    // keep your original "energy"
 
-	void ResetGrid()
+        for (int i = 0; i < gridTransforms.Length; i++)
+        {
+            RectTransform tile = gridTransforms[i];
+
+            // Fallback: if base positions aren't set yet, use whatever we have
+            Vector3 basePos = (gridBasePositions != null && gridBasePositions.Length > i)
+                ? gridBasePositions[i]
+                : tile.localPosition;
+
+            // Cancel any existing tweens on this tile to avoid overlapping shakes
+            LeanTween.cancel(tile.gameObject);
+
+            // Random horizontal offset around the base position
+            float offsetX = UnityEngine.Random.Range(-0.5f, 0.5f) * shakeMagnitude;
+            Vector3 targetPos = new Vector3(basePos.x + offsetX, basePos.y, basePos.z);
+
+            LeanTween.moveLocal(tile.gameObject, targetPos, duration)
+                .setEaseInOutCirc()
+                .setLoopPingPong()
+                .setRepeat(repeatCount)
+                .setOnComplete(() =>
+                {
+                    // Hard snap back to the original cell position at the end
+                    tile.localPosition = basePos;
+                });
+        }
+    }
+
+    void ResetGrid()
 	{
 		LetterCharacterTransform.localPosition = new Vector3(-650f, 0f, 0f);
 		currentGridClick = -1;
@@ -1538,7 +1511,18 @@ public class GameLogic : MonoBehaviour
 		gridTransforms[3].localPosition = new Vector3(-162f, -103f, 0f);
 		gridTransforms[4].localPosition = new Vector3(1f, -103f, 0f);
 		gridTransforms[5].localPosition = new Vector3(164f, -103f, 0f);
-	}
+
+        // Update base positions after resetting the grid layout
+        if (gridBasePositions == null || gridBasePositions.Length != gridTransforms.Length)
+        {
+            gridBasePositions = new Vector3[gridTransforms.Length];
+        }
+
+        for (int i = 0; i < gridTransforms.Length; i++)
+        {
+            gridBasePositions[i] = gridTransforms[i].localPosition;
+        }
+    }
 
     void OnResetPlayScreen()
     {
