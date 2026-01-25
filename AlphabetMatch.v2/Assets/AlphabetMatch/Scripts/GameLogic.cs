@@ -1422,7 +1422,11 @@ public class GameLogic : MonoBehaviour
 	{
 		if (CorrectLetterCounter >= CorrectLetterTotal)
 		{
-			currentGridClick = -2;
+
+            //Round is done: prevent late letter VO from playing.
+            audioPlayIntro = false;
+
+            currentGridClick = -2;
 
 			// how far (in local‑space units) each tile should drop straight down
 			const float dropAmount = 684f;
@@ -1758,8 +1762,9 @@ public class GameLogic : MonoBehaviour
 				if (audioPlayIntro)
 				{
 					AudioSource audioIntro = gameObject.GetComponent<AudioSource>();
-					if (!audioIntro.isPlaying)
+					if (!audioIntro.isPlaying && CorrectLetterCounter == 0)
 					{
+                        // Only play the letter VO if no Correct answers yet
 						playLetterAudio(currentDisplayLetter);
 						audioPlayIntro = false;
 					}
