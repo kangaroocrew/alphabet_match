@@ -7,197 +7,188 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System;
 
-
 public class GameLogic : MonoBehaviour
 {
-	public GardenLogic gardenLogicObj;
-	public LetterCharacterAnimate LetterCharacterObj;
-	public RectTransform LetterCharacterTransform;
-	//
-	public LetterCharacterAnimate AnimateCharacter1Obj;
-	public RectTransform AnimateCharacter1Transform;
-	public LetterCharacterAnimate AnimateCharacter2Obj;
-	public RectTransform AnimateCharacter2Transform;
-	public ImageObject AnimateObject;
-	public RectTransform AnimateObjectTransform;
-	//
-	public string gameState;
-	public string characterSelection;
-	public int levelNumber;
-
-	public GameObject StartScreen;
-	public GameObject CharacterScreen;
-	public GameObject LevelScreen;
-	public GameObject GardenScreen;
-	public GameObject PlayScreen;
-	public GameObject AnimateScreen;
-	public GameObject AnalyticsScreen;
-
-	private List<string> aWordList;
-	private List<string> bWordList;
-	private List<string> cWordList;
-	private List<string> dWordList;
-	private List<string> eWordList;
-	private List<string> fWordList;
-	private List<string> gWordList;
-	private List<string> hWordList;
-	private List<string> iWordList;
-	private List<string> jWordList;
-	private List<string> kWordList;
-	private List<string> lWordList;
-	private List<string> mWordList;
-	private List<string> nWordList;
-	private List<string> oWordList;
-	private List<string> pWordList;
-	private List<string> qWordList;
-	private List<string> rWordList;
-	private List<string> sWordList;
-	private List<string> tWordList;
-	private List<string> uWordList;
-	private List<string> vWordList;
-	private List<string> wWordList;
-	private List<string> xWordList;
-	private List<string> yWordList;
-	private List<string> zWordList;
-
-	private List<string>[] wordsListArray;
-
-	private string[] letterList;
-
-	private string[] wordDisplayArray;
-	private string currentDisplayLetter;
-	private int[] currentLetterIndex;
-	private int currentLetterPointer;
-
-	private string[] correctAudioArray;
-	private string[] incorrectAudioArray;
-
-	public GridObject[] gridObjects;
-	public RectTransform[] gridTransforms;
-	public Image DisplayLetterText;
-	public RectTransform DisplayGridTransform;
-	public RectTransform DisplayLetterTransform;
-	public GameObject[] starObjects;
-
-	public int currentGridClick;
-
-	int CorrectLetterCounter;
-	int CorrectLetterTotal;
-	int letterIndex;
-	bool audioPlayIntro;
-
-	public TextMeshProUGUI todayText;
-	public TextMeshProUGUI weekText;
-	public TextMeshProUGUI monthText;
-	public TextMeshProUGUI alltimeText;
-
+    public GardenLogic gardenLogicObj;
+    public LetterCharacterAnimate LetterCharacterObj;
+    public RectTransform LetterCharacterTransform;
+    public LetterCharacterAnimate AnimateCharacter1Obj;
+    public RectTransform AnimateCharacter1Transform;
+    public LetterCharacterAnimate AnimateCharacter2Obj;
+    public RectTransform AnimateCharacter2Transform;
+    public ImageObject AnimateObject;
+    public RectTransform AnimateObjectTransform;
+    public string gameState;
+    public string characterSelection;
+    public int levelNumber;
+    public GameObject StartScreen;
+    public GameObject CharacterScreen;
+    public GameObject LevelScreen;
+    public GameObject GardenScreen;
+    public GameObject PlayScreen;
+    public GameObject AnimateScreen;
+    public GameObject AnalyticsScreen;
+    private List<string> aWordList;
+    private List<string> bWordList;
+    private List<string> cWordList;
+    private List<string> dWordList;
+    private List<string> eWordList;
+    private List<string> fWordList;
+    private List<string> gWordList;
+    private List<string> hWordList;
+    private List<string> iWordList;
+    private List<string> jWordList;
+    private List<string> kWordList;
+    private List<string> lWordList;
+    private List<string> mWordList;
+    private List<string> nWordList;
+    private List<string> oWordList;
+    private List<string> pWordList;
+    private List<string> qWordList;
+    private List<string> rWordList;
+    private List<string> sWordList;
+    private List<string> tWordList;
+    private List<string> uWordList;
+    private List<string> vWordList;
+    private List<string> wWordList;
+    private List<string> xWordList;
+    private List<string> yWordList;
+    private List<string> zWordList;
+    private List<string>[] wordsListArray;
+    private string[] letterList;
+    private string[] wordDisplayArray;
+    private string currentDisplayLetter;
+    private int[] currentLetterIndex;
+    private int currentLetterPointer;
+    private string[] correctAudioArray;
+    private string[] incorrectAudioArray;
+    public GridObject[] gridObjects;
+    public RectTransform[] gridTransforms;
+    public Image DisplayLetterText;
+    public RectTransform DisplayGridTransform;
+    public RectTransform DisplayLetterTransform;
+    public GameObject[] starObjects;
+    public int currentGridClick;
+    int CorrectLetterCounter;
+    int CorrectLetterTotal;
+    int letterIndex;
+    bool audioPlayIntro;
+    public TextMeshProUGUI todayText;
+    public TextMeshProUGUI weekText;
+    public TextMeshProUGUI monthText;
+    public TextMeshProUGUI alltimeText;
     public TextMeshProUGUI[] gardenLetterLabels; // size 26, A–Z in order
-
-
     string todayDateString;
-	public SaveDataObject saveDataObj;
-	public SaveDataObject weekDataObj;
-	public SaveDataObject monthDataObj;
-
-	public float startTime;
-	public float elapsedTime;
-
-	public TextMeshProUGUI[] LevelsText;
-	public TextMeshProUGUI[] PercentText;
-	public TextMeshProUGUI[] TimeSpentText;
-
-	public TMPro.TMP_Dropdown LettersMenu;
-
-	public int AnimationBreakNumber;
-	public int RandomCharIndex1;
-	public int RandomCharIndex2;
-	public int RandomLetterIndex;
-	public int RandomItemIndex;
-
-	public GameObject MusicOnObj;
-	public GameObject MusicOffObj;
-	public AudioSource MusicSource;
-
+    public SaveDataObject saveDataObj;
+    public SaveDataObject weekDataObj;
+    public SaveDataObject monthDataObj;
+    public float startTime;
+    public float elapsedTime;
+    public TextMeshProUGUI[] LevelsText;
+    public TextMeshProUGUI[] PercentText;
+    public TextMeshProUGUI[] TimeSpentText;
+    public TMPro.TMP_Dropdown LettersMenu;
+    public int AnimationBreakNumber;
+    public int RandomCharIndex1;
+    public int RandomCharIndex2;
+    public int RandomLetterIndex;
+    public int RandomItemIndex;
+    public GameObject MusicOnObj;
+    public GameObject MusicOffObj;
+    public AudioSource MusicSource;
     public GameObject ResetConfirmPanel;   // optional: confirmation popup (can be null if unused.)
-
-
+    //PlayScene Letter Box Variable
+    // Pop animation base sizes
+    private Vector2 baseGridSize;
+    private Vector2 baseLetterSize;
+    //Audio Logic variables: 
+    // Main VO source (same AudioSource you've been using on this GameObject)
+    [SerializeField] private AudioSource voSource;
+    // Track what we last played so we can avoid spam
+    private string currentVOKey = null;
+    private float lastVOStartTime = -999f;
+    // Tweak these in the Inspector if needed
+    [SerializeField] private float sameLineCooldown = 0.5f;   // Same line cannot replay within 0.5s
+    [SerializeField] private float minGapBetweenLines = 0.1f; // Tiny gap between any two VO lines
     //New variables for new logic!
     public enum LetterCaseMode { Uppercase, Lowercase, Mixed }
     public LetterCaseMode letterCaseMode = LetterCaseMode.Lowercase;
+    // Cache "home" positions for each tile
+    private Vector3[] gridBasePositions;
 
 
     // Start is called before the first frame update
     void Start()
-	{
-		gameState = "StartGame";
-		currentGridClick = -1;
-		// Load Previous Data
-		todayDateString = CreateFilename(0);
+    {
+        gameState = "StartGame";
+        currentGridClick = -1;
+        // Load Previous Data
+        todayDateString = CreateFilename(0);
         UnityEngine.Debug.Log(todayDateString);
-		saveDataObj = new SaveDataObject();
-		saveDataObj.Init();
-		saveDataObj.InitSum();
-		LoadData(todayDateString, saveDataObj);
-		//
-		for (int i = 0; i < 26; i++)
-		{
+        saveDataObj = new SaveDataObject();
+        saveDataObj.Init();
+        saveDataObj.InitSum();
+        LoadData(todayDateString, saveDataObj);
+        for (int i = 0; i < 26; i++)
+        {
             UnityEngine.Debug.Log("LP" + saveDataObj.medlevelPlayed[i]);
-		}
-		//
-		LoadWeekData();
-		LoadMonthData();
-		//
-		playVOAudio("title_new");
-		//
-		toggleMusicOn();
-	}
-	// --------------------- Load/Save Usage Data ---------------------------//
+        }
+        LoadWeekData();
+        LoadMonthData();
+        playVOAudio("title_new");
+        toggleMusicOn();
+        //save the box and letter size
+        baseGridSize = DisplayGridTransform.sizeDelta;
+        baseLetterSize = DisplayLetterTransform.sizeDelta;
 
-	// A - Z, Datename, Levels, % Correct, Time Spent'
+    }
+    // --------------------- Load/Save Usage Data ---------------------------//
 
-	private string CreateFilename(int _days)
-	{
-		System.DateTime dt = System.DateTime.Now.AddDays(_days);
-		string Day = dt.Day.ToString();
-		string Month = dt.Month.ToString();
-		string Year = dt.Year.ToString();
-		if (Day.Length == 1)
-		{
-			Day = "0" + Day;
-		}
-		if (Month.Length == 1)
-		{
-			Month = "0" + Month;
-		}
-		string dateString = Year + Month + Day;
-		return dateString;
-	}
+    // A - Z, Datename, Levels, % Correct, Time Spent'
 
-	private void LoadWeekData()
-	{
-		string loadDateString;
-		weekDataObj = new SaveDataObject();
-		weekDataObj.Init();
-		weekDataObj.InitSum();
-		for (int i = 0; i < 7; i++)
-		{
-			loadDateString = CreateFilename(-i);
-			LoadData(loadDateString, weekDataObj);
-		}
-	}
+    private string CreateFilename(int _days)
+    {
+        System.DateTime dt = System.DateTime.Now.AddDays(_days);
+        string Day = dt.Day.ToString();
+        string Month = dt.Month.ToString();
+        string Year = dt.Year.ToString();
+        if (Day.Length == 1)
+        {
+            Day = "0" + Day;
+        }
+        if (Month.Length == 1)
+        {
+            Month = "0" + Month;
+        }
+        string dateString = Year + Month + Day;
+        return dateString;
+    }
 
-	private void LoadMonthData()
-	{
-		string loadDateString;
-		monthDataObj = new SaveDataObject();
-		monthDataObj.Init();
-		monthDataObj.InitSum();
-		for (int i = 0; i < 30; i++)
-		{
-			loadDateString = CreateFilename(-i);
-			LoadData(loadDateString, monthDataObj);
-		}
-	}
+    private void LoadWeekData()
+    {
+        string loadDateString;
+        weekDataObj = new SaveDataObject();
+        weekDataObj.Init();
+        weekDataObj.InitSum();
+        for (int i = 0; i < 7; i++)
+        {
+            loadDateString = CreateFilename(-i);
+            LoadData(loadDateString, weekDataObj);
+        }
+    }
+
+    private void LoadMonthData()
+    {
+        string loadDateString;
+        monthDataObj = new SaveDataObject();
+        monthDataObj.Init();
+        monthDataObj.InitSum();
+        for (int i = 0; i < 30; i++)
+        {
+            loadDateString = CreateFilename(-i);
+            LoadData(loadDateString, monthDataObj);
+        }
+    }
 
     private void LoadData(string _dateName, SaveDataObject _dataObj)
     {
@@ -253,7 +244,6 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-
     private Save CreateSaveDataObject()
     {
         Save save = new Save();
@@ -284,21 +274,20 @@ public class GameLogic : MonoBehaviour
         return save;
     }
 
-
     public void SaveData(string _dateName)
-	{
-		Save save = CreateSaveDataObject();
-		//
-		BinaryFormatter bf = new BinaryFormatter();
-		FileStream file = File.Create(Application.persistentDataPath + "/" + _dateName + ".save");
-		bf.Serialize(file, save);
-		file.Close();
-	}
+    {
+        Save save = CreateSaveDataObject();
+        //
+        BinaryFormatter bf = new BinaryFormatter();
+        FileStream file = File.Create(Application.persistentDataPath + "/" + _dateName + ".save");
+        bf.Serialize(file, save);
+        file.Close();
+    }
 
-	public void DropDownMenuToggleData()
-	{
-		ParseDisplayData(LettersMenu.value - 1, saveDataObj);
-	}
+    public void DropDownMenuToggleData()
+    {
+        ParseDisplayData(LettersMenu.value - 1, saveDataObj);
+    }
 
     void ParseDisplayData(int _letterSelect, SaveDataObject _dataObj)
     {
@@ -523,7 +512,6 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-
     // ---------------------  Reset Stats (shared tablet)  ---------------------------//
 
     // Called by the main "Reset Stats" button (shows confirm popup, or resets directly)
@@ -588,9 +576,7 @@ public class GameLogic : MonoBehaviour
         UnityEngine.Debug.Log("All stats reset for this device.");
     }
 
-
     // --------------------- Grid Click Event -------------------------------//
-
 
     public void CheckGridClick(int _gridNumber)
     {
@@ -674,30 +660,28 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-
-
     // -------------------- Animate Stars FX --------------------------------//
     public void ResetStars()
-	{
-		for (int i = 0; i < 6; i++)
-		{
-			starObjects[i].GetComponent<Stars>().Reset();
-		}
-	}
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            starObjects[i].GetComponent<Stars>().Reset();
+        }
+    }
 
-	// --------------------   Load/Display Images  --------------------------//
+    // --------------------   Load/Display Images  --------------------------//
 
-	// get list of image filenames and put into wordlist array
+    // get list of image filenames and put into wordlist array
 
-	// put images into ArrayList
-	public void FillGridImages()
-	{
-		for (int i = 0; i < gridObjects.Length; i++)
-		{
-			gridObjects[i].DisplayWordImage(wordDisplayArray[i]);
-			gridObjects[i].DisplayWordText(wordDisplayArray[i]);
-		}
-	}
+    // put images into ArrayList
+    public void FillGridImages()
+    {
+        for (int i = 0; i < gridObjects.Length; i++)
+        {
+            gridObjects[i].DisplayWordImage(wordDisplayArray[i]);
+            gridObjects[i].DisplayWordText(wordDisplayArray[i]);
+        }
+    }
 
     public void SetGridObjectDisplays()
     {
@@ -781,90 +765,89 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-
     // ---------------------  Alphabet Content Selection ----------------------//
 
     private void GenerateVocabularyList()
-	{
-		letterList = new string[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
-		//
-		//TO DO: Generate Word List from json file
-		aWordList = new List<string>() { "acorn", "angel", "apricot", "april", "apron" };
-		bWordList = new List<string>() { "bag", "ball", "balloon", "banana", "bat", "bee", "bell", "book", "boot", "box", "bread", "broom" };
-		cWordList = new List<string>() { "cake", "can", "candle", "cap", "car", "carrot", "clock", "cookie", "cup" };
-		dWordList = new List<string>() { "dinosaur", "dish", "doll", "door", "doughnut", "drum", "duck" };
-		eWordList = new List<string>() { "ear", "easel", "eel", "eraser" };
-		fWordList = new List<string>() { "fan", "feather", "fence", "fire", "fish", "flag", "flower", "fly" };
-		gWordList = new List<string>() { "garage", "gate", "gift", "glasses", "glove", "grapes", "guitar" };
-		hWordList = new List<string>() { "hamburger", "hammer", "hanger", "hat", "heart", "hook", "horse", "hot dog", "house" };
-		iWordList = new List<string>() { "ice cream", "ice cube", "ice skate", "icicle", "iron", "ivy" };
-		jWordList = new List<string>() { "jacket", "jar", "jello", "jet", "jewel", "jug", "jumprope" };
-		kWordList = new List<string>() { "kettle", "key", "keyboard", "kite", "kitten" };
-		lWordList = new List<string>() { "ladder", "lady bug", "lamp", "leaf", "lion", "lollipop" };
-		mWordList = new List<string>() { "milk", "mitten", "money", "moon", "mosquito", "mouth", "mug", "mushroom" };
-		nWordList = new List<string>() { "nail", "necklace", "needle", "nest", "net", "nose" };
-		oWordList = new List<string>() { "oatmeal", "oboe", "ocean", "oval", "overalls" };
-		pWordList = new List<string>() { "pancakes", "parrot", "pear", "pen", "pencil", "pie", "pig", "pizza", "plane", "popcorn", "pot", "present", "pumpkin" };
-		qWordList = new List<string>() { "quarter", "question mark", "quiet", "quilt" };
-		rWordList = new List<string>() { "rabbit", "raspberry", "ring", "rock", "rocket", "rooster" };
-		sWordList = new List<string>() { "sandwich", "scissors", "sled", "sock", "spoon", "star", "strawberry", "sun" };
-		tWordList = new List<string>() { "table", "tomato", "train", "tree", "truck", "tub" };
-		uWordList = new List<string>() { "u turn", "unicycle", "uniform", "united states" };
-		vWordList = new List<string>() { "vase", "vegtables", "vest", "violin", "volcano" };
-		wWordList = new List<string>() { "wagon", "wallet", "walrus", "water", "watermelon", "wheel", "wood" };
-		xWordList = new List<string>() { "x axis", "xray fish", "xray" };
-		yWordList = new List<string>() { "yarn", "yellow", "yolk", "yoyo" };
-		zWordList = new List<string>() { "zebra", "zipper", "zoom", "zucchini" };
-		//
-		wordsListArray = new List<string>[] { aWordList, bWordList, cWordList, dWordList, eWordList, fWordList, gWordList, hWordList, iWordList, jWordList, kWordList, lWordList, mWordList, nWordList, oWordList, pWordList, qWordList, rWordList, sWordList, tWordList, uWordList, vWordList, wWordList, xWordList, yWordList, zWordList };
-	}
+    {
+        letterList = new string[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" };
+        //
+        //TO DO: Generate Word List from json file
+        aWordList = new List<string>() { "acorn", "angel", "apricot", "april", "apron" };
+        bWordList = new List<string>() { "bag", "ball", "balloon", "banana", "bat", "bee", "bell", "book", "boot", "box", "bread", "broom" };
+        cWordList = new List<string>() { "cake", "can", "candle", "cap", "car", "carrot", "clock", "cookie", "cup" };
+        dWordList = new List<string>() { "dinosaur", "dish", "doll", "door", "doughnut", "drum", "duck" };
+        eWordList = new List<string>() { "ear", "easel", "eel", "eraser" };
+        fWordList = new List<string>() { "fan", "feather", "fence", "fire", "fish", "flag", "flower", "fly" };
+        gWordList = new List<string>() { "garage", "gate", "gift", "glasses", "glove", "grapes", "guitar" };
+        hWordList = new List<string>() { "hamburger", "hammer", "hanger", "hat", "heart", "hook", "horse", "hot dog", "house" };
+        iWordList = new List<string>() { "ice cream", "ice cube", "ice skate", "icicle", "iron", "ivy" };
+        jWordList = new List<string>() { "jacket", "jar", "jello", "jet", "jewel", "jug", "jumprope" };
+        kWordList = new List<string>() { "kettle", "key", "keyboard", "kite", "kitten" };
+        lWordList = new List<string>() { "ladder", "lady bug", "lamp", "leaf", "lion", "lollipop" };
+        mWordList = new List<string>() { "milk", "mitten", "money", "moon", "mosquito", "mouth", "mug", "mushroom" };
+        nWordList = new List<string>() { "nail", "necklace", "needle", "nest", "net", "nose" };
+        oWordList = new List<string>() { "oatmeal", "oboe", "ocean", "oval", "overalls" };
+        pWordList = new List<string>() { "pancakes", "parrot", "pear", "pen", "pencil", "pie", "pig", "pizza", "plane", "popcorn", "pot", "present", "pumpkin" };
+        qWordList = new List<string>() { "quarter", "question mark", "quiet", "quilt" };
+        rWordList = new List<string>() { "rabbit", "raspberry", "ring", "rock", "rocket", "rooster" };
+        sWordList = new List<string>() { "sandwich", "scissors", "sled", "sock", "spoon", "star", "strawberry", "sun" };
+        tWordList = new List<string>() { "table", "tomato", "train", "tree", "truck", "tub" };
+        uWordList = new List<string>() { "u turn", "unicycle", "uniform", "united states" };
+        vWordList = new List<string>() { "vase", "vegtables", "vest", "violin", "volcano" };
+        wWordList = new List<string>() { "wagon", "wallet", "walrus", "water", "watermelon", "wheel", "wood" };
+        xWordList = new List<string>() { "x axis", "xray fish", "xray" };
+        yWordList = new List<string>() { "yarn", "yellow", "yolk", "yoyo" };
+        zWordList = new List<string>() { "zebra", "zipper", "zoom", "zucchini" };
+        //
+        wordsListArray = new List<string>[] { aWordList, bWordList, cWordList, dWordList, eWordList, fWordList, gWordList, hWordList, iWordList, jWordList, kWordList, lWordList, mWordList, nWordList, oWordList, pWordList, qWordList, rWordList, sWordList, tWordList, uWordList, vWordList, wWordList, xWordList, yWordList, zWordList };
+    }
 
-	private void ExcludeFromVocabularyList()
-	{
-	}
+    private void ExcludeFromVocabularyList()
+    {
+    }
 
-	public List<string> FindCorrentWords(string _word, int _num)
-	{
-		List<string> randomWords = new List<string>();
-		return randomWords;
-	}
+    public List<string> FindCorrentWords(string _word, int _num)
+    {
+        List<string> randomWords = new List<string>();
+        return randomWords;
+    }
 
-	public void ClearWordDisplay()
-	{
-		wordDisplayArray = new string[6];
-	}
+    public void ClearWordDisplay()
+    {
+        wordDisplayArray = new string[6];
+    }
 
-	public void AddWord(int _pos, string _word)
-	{
-		wordDisplayArray[_pos] = _word;
-	}
+    public void AddWord(int _pos, string _word)
+    {
+        wordDisplayArray[_pos] = _word;
+    }
 
-	public void RandomWordDisplay()
-	{
-		RandomizeWordArray(wordDisplayArray);
-	}
+    public void RandomWordDisplay()
+    {
+        RandomizeWordArray(wordDisplayArray);
+    }
 
-	public void RandomizeWordArray(string[] _words)
-	{
-		for (int i = _words.Length - 1; i > 0; i--)
-		{
-			int r = UnityEngine.Random.Range(0, i + 1);
-			string tmp = _words[i];
-			_words[i] = _words[r];
-			_words[r] = tmp;
-		}
-	}
+    public void RandomizeWordArray(string[] _words)
+    {
+        for (int i = _words.Length - 1; i > 0; i--)
+        {
+            int r = UnityEngine.Random.Range(0, i + 1);
+            string tmp = _words[i];
+            _words[i] = _words[r];
+            _words[r] = tmp;
+        }
+    }
 
-	public void RandomizeWordList(List<string> _words)
-	{
-		for (int i = _words.Count - 1; i > 0; i--)
-		{
-			int r = UnityEngine.Random.Range(0, i + 1);
-			string tmp = _words[i];
-			_words[i] = _words[r];
-			_words[r] = tmp;
-		}
-	}
+    public void RandomizeWordList(List<string> _words)
+    {
+        for (int i = _words.Count - 1; i > 0; i--)
+        {
+            int r = UnityEngine.Random.Range(0, i + 1);
+            string tmp = _words[i];
+            _words[i] = _words[r];
+            _words[r] = tmp;
+        }
+    }
 
     private void UpdateGardenLetterVisuals()
     {
@@ -896,7 +879,6 @@ public class GameLogic : MonoBehaviour
         }
     }
 
-
     // Task 02: Single-letter mode
     // Previously supported 3-letter clusters with wrap-around (Y/Z → A/B).
     // Now intentionally restricted to one letter per round.
@@ -906,39 +888,37 @@ public class GameLogic : MonoBehaviour
         letterIndex = 0;
     }
 
-/*public void SetLetterIndex(int _num)
-{
-    currentLetterIndex = new int[] { _num, _num + 1, _num + 2 };
-    if (_num == 24)
+    /*public void SetLetterIndex(int _num)
     {
-        currentLetterIndex = new int[] { _num, _num + 1, 0 };
+        currentLetterIndex = new int[] { _num, _num + 1, _num + 2 };
+        if (_num == 24)
+        {
+            currentLetterIndex = new int[] { _num, _num + 1, 0 };
+        }
+        if (_num == 25)
+        {
+            currentLetterIndex = new int[] { _num, 0, 1 };
+        }
     }
-    if (_num == 25)
+    */
+    
+    public void SetCurrentLetter(int _num)
     {
-        currentLetterIndex = new int[] { _num, 0, 1 };
+        currentLetterPointer = _num;
+
+        // Canonical logical letter (always lowercase)
+        currentDisplayLetter = letterList[_num].ToLower();
+
+        // Sprites are named using the base (lowercase) letter
+        string imageFilename = "Letters/" + currentDisplayLetter + "_letter";
+        DisplayLetterText.sprite = Resources.Load<Sprite>(imageFilename);
+
+        // If you ever switch to text instead of an image for the big letter,
+        // you could apply letterCaseMode here to control its visual case.
+        // e.g. DisplayLetterTextTMP.text = ...;
     }
-}
-*/
 
-
-public void SetCurrentLetter(int _num)
-{
-    currentLetterPointer = _num;
-
-    // Canonical logical letter (always lowercase)
-    currentDisplayLetter = letterList[_num].ToLower();
-
-    // Sprites are named using the base (lowercase) letter
-    string imageFilename = "Letters/" + currentDisplayLetter + "_letter";
-    DisplayLetterText.sprite = Resources.Load<Sprite>(imageFilename);
-
-    // If you ever switch to text instead of an image for the big letter,
-    // you could apply letterCaseMode here to control its visual case.
-    // e.g. DisplayLetterTextTMP.text = ...;
-}
-
-
-public void GenerateRandomDisplayList()
+    public void GenerateRandomDisplayList()
 	{
 		// Put all correct words in ArrayList
 		List<string> randomCorrectWords = new List<string>();
@@ -988,73 +968,188 @@ public void GenerateRandomDisplayList()
 		SetGridObjectDisplays();
 	}
 
-	// --------------------   Audio Playback   ------------------------------//
+    // --------------------   Audio Playback   ------------------------------//
 
-	// put audio into ArrayList
-	private void InitAudioAssets()
+    private AudioSource GetVOSource()
+    {
+        if (!voSource)
+            voSource = GetComponent<AudioSource>(); // same as your old code
+
+        return voSource;
+    }
+
+    // Decide if we're allowed to play a VO line right now
+    private bool CanPlayVO(string key)
+    {
+        var source = GetVOSource();
+        if (!source)
+            return false;
+
+        float now = Time.time;
+
+        // Don't fire a bunch of lines in the same frame
+        if (now - lastVOStartTime < minGapBetweenLines)
+            return false;
+
+        // Same line recently? ignore to avoid "try again try again try again..."
+        if (!string.IsNullOrEmpty(currentVOKey) &&
+            currentVOKey == key &&
+            now - lastVOStartTime < sameLineCooldown)
+        {
+            return false;
+        }
+
+        // If something is already playing, just ignore this new request.
+        // (This is the main "no audio soup" rule.)
+        if (source.isPlaying)
+            return false;
+
+        return true;
+    }
+
+    // Actually play the clip and record what we did
+    private void PlayVOClip(AudioClip clip, string key)
+    {
+        var source = GetVOSource();
+        if (!source || !clip)
+            return;
+
+        source.PlayOneShot(clip);
+
+        currentVOKey = key;
+        lastVOStartTime = Time.time;
+    }
+
+    // Optional helper if you ever want to forcibly stop VO from another place
+    public void StopVO()
+    {
+        var source = GetVOSource();
+        if (source && source.isPlaying)
+            source.Stop();
+
+        currentVOKey = null;
+    }
+
+    // put audio into ArrayList
+    private void InitAudioAssets()
 	{
 		correctAudioArray = new string[] { "ex_00", "ex_01", "ex_02", "ex_03", "ex_04", "ex_05", "ex_06", "ex_07", "ex_08", "ex_09", "ex_10", "ex_11", "ex_12", "ex_13", "ex_14" };
 		incorrectAudioArray = new string[] { "try_another_00", "try_another_01", "try_another_02" };
 	}
 
-	// play vo audio
-	public void playVOAudio(string _filename)
-	{
-		AudioSource audioletter = gameObject.GetComponent<AudioSource>();
-		string letterFilename = "VO/" + _filename;
-		audioletter.PlayOneShot((AudioClip)Resources.Load(letterFilename));
-	}
+    // play vo audio
+    public void playVOAudio(string _filename)
+    {
+        string key = "VO_" + _filename;
+        if (!CanPlayVO(key))
+            return;
 
-	// play alphabet character audio
-	public void playCharacterAudio(int _filenum)
-	{
-		string _filename = new string[] { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" }[_filenum];
-		AudioSource audioletter = gameObject.GetComponent<AudioSource>();
-		string letterFilename = "Characters/Audio/" + _filename;
-		audioletter.PlayOneShot((AudioClip)Resources.Load(letterFilename));
-	}
+        string letterFilename = "VO/" + _filename;
+        AudioClip clip = Resources.Load<AudioClip>(letterFilename);
 
-	// play alphabet letter audio
-	public void playLetterAudio(string _filename)
-	{
-		AudioSource audioletter = gameObject.GetComponent<AudioSource>();
-		string letterFilename = "Objects/Audio/letters/" + _filename;
-		audioletter.PlayOneShot((AudioClip)Resources.Load(letterFilename));
-	}
+        PlayVOClip(clip, key);
+    }
 
-	// play word audio
-	public void playWordAudio(string _filename)
-	{
-		AudioSource audioword = gameObject.GetComponent<AudioSource>();
-		char letter = _filename[0];
-		string wordFilename = "Objects/Audio/words/letter" + letter + "/" + _filename;
-		audioword.PlayOneShot((AudioClip)Resources.Load(wordFilename));
-	}
+    // play alphabet character audio
+    public void playCharacterAudio(int _filenum)
+    {
+        string[] letters = new string[]
+        {
+        "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l",
+        "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
+        };
 
-	// play correct audio
-	public void playCorrectAudio()
-	{
-		AudioSource audioPlay = gameObject.GetComponent<AudioSource>();
-		int audioIndex = UnityEngine.Random.Range(0, correctAudioArray.Length);
-		string audioFilename = "Correct/" + correctAudioArray[audioIndex];
-		audioPlay.PlayOneShot((AudioClip)Resources.Load(audioFilename));
-	}
+        string _filename = letters[_filenum];
 
-	// play incorrect audio
-	public void playIncorrectAudio()
-	{
-		AudioSource audioPlay = gameObject.GetComponent<AudioSource>();
-		int audioIndex = UnityEngine.Random.Range(0, incorrectAudioArray.Length);
-		string audioFilename = "Incorrect/" + incorrectAudioArray[audioIndex];
-		audioPlay.PlayOneShot((AudioClip)Resources.Load(audioFilename));
-	}
+        string key = "CHAR_" + _filename;
+        if (!CanPlayVO(key))
+            return;
 
-	public void toggleMusicOn()
-	{
-		MusicOnObj.SetActive(true);
-		MusicOffObj.SetActive(false);
-		MusicSource.mute = false;
-	}
+        string letterFilename = "Characters/Audio/" + _filename;
+        AudioClip clip = Resources.Load<AudioClip>(letterFilename);
+
+        PlayVOClip(clip, key);
+    }
+
+    // play alphabet letter audio
+    public void playLetterAudio(string _filename)
+    {
+        string key = "LETTER_" + _filename;
+        if (!CanPlayVO(key))
+            return;
+
+        string letterFilename = "Objects/Audio/letters/" + _filename;
+        AudioClip clip = Resources.Load<AudioClip>(letterFilename);
+
+        PlayVOClip(clip, key);
+    }
+
+    // play word audio
+    public void playWordAudio(string _filename)
+    {
+        char letter = _filename[0];
+
+        string key = "WORD_" + _filename;  // treat each word as unique
+        if (!CanPlayVO(key))
+            return;
+
+        string wordFilename = "Objects/Audio/words/letter" + letter + "/" + _filename;
+        AudioClip clip = Resources.Load<AudioClip>(wordFilename);
+
+        PlayVOClip(clip, key);
+    }
+
+    public void playCorrectAudio()
+    {
+        string key = "CORRECT";
+        var source = GetVOSource();
+        if (!source) return;
+
+        float now = Time.time;
+
+        // Still avoid literal machine-gun of the *same* "Good job!" line
+        if (!string.IsNullOrEmpty(currentVOKey) &&
+            currentVOKey == key &&
+            now - lastVOStartTime < sameLineCooldown)
+        {
+            // We just played CORRECT very recently; skip this one
+            return;
+        }
+
+        // IMPORTANT FEEDBACK: interrupt whatever is talking (letter, word, etc.)
+        if (source.isPlaying)
+        {
+            source.Stop();
+        }
+
+        int audioIndex = UnityEngine.Random.Range(0, correctAudioArray.Length);
+        string audioFilename = "Correct/" + correctAudioArray[audioIndex];
+        AudioClip clip = Resources.Load<AudioClip>(audioFilename);
+
+        // Use the same helper so tracking stays consistent
+        PlayVOClip(clip, key);
+    }
+
+    // play incorrect audio
+    public void playIncorrectAudio()
+    {
+        string key = "INCORRECT";
+        if (!CanPlayVO(key))
+            return;
+
+        int audioIndex = UnityEngine.Random.Range(0, incorrectAudioArray.Length);
+        string audioFilename = "Incorrect/" + incorrectAudioArray[audioIndex];
+
+        AudioClip clip = Resources.Load<AudioClip>(audioFilename);
+        PlayVOClip(clip, key);
+    }
+
+    public void toggleMusicOn()
+	    {
+		    MusicOnObj.SetActive(true);
+		    MusicOffObj.SetActive(false);
+		    MusicSource.mute = false;
+	    }
 
 	public void toggleMusicOff()
 	{
@@ -1159,7 +1254,6 @@ public void GenerateRandomDisplayList()
         gameState = "AnimateGarden";
     }
 
-
     public void ClearGlows()
 	{
 		GameObject[] gos;
@@ -1249,8 +1343,8 @@ public void GenerateRandomDisplayList()
 	void HideScreens()
 	{
 		ClearGlows();
-		GetComponent<AudioSource>().Stop();
-		StartScreen.SetActive(false);
+        StopVO(); // uses the same AudioSource as the VO manager
+        StartScreen.SetActive(false);
 		CharacterScreen.SetActive(false);
 		LevelScreen.SetActive(false);
 		GardenScreen.SetActive(false);
@@ -1275,7 +1369,8 @@ public void GenerateRandomDisplayList()
 	{
 		SaveData(todayDateString);
 		LeanTween.cancelAll();
-		StopGardenAnimate();
+        StopVO();
+        StopGardenAnimate();
 		gameState = "AnimateGarden";
 	}
 
@@ -1284,7 +1379,6 @@ public void GenerateRandomDisplayList()
 		LeanTween.cancelAll();
 		gameState = "AnimateGarden";
 	}
-	//
 
 	public void SelectGridButton(int _buttonNumber)
 	{
@@ -1328,7 +1422,11 @@ public void GenerateRandomDisplayList()
 	{
 		if (CorrectLetterCounter >= CorrectLetterTotal)
 		{
-			currentGridClick = -2;
+
+            //Round is done: prevent late letter VO from playing.
+            audioPlayIntro = false;
+
+            currentGridClick = -2;
 
 			// how far (in local‑space units) each tile should drop straight down
 			const float dropAmount = 684f;
@@ -1351,17 +1449,41 @@ public void GenerateRandomDisplayList()
 		}
 	}
 
-	void ShakeGrid()
-	{
-		LeanTween.move(gridTransforms[0], new Vector3(gridTransforms[0].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[0].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[1], new Vector3(gridTransforms[1].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[1].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[2], new Vector3(gridTransforms[2].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[2].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[3], new Vector3(gridTransforms[3].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[3].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[4], new Vector3(gridTransforms[4].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[4].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-		LeanTween.move(gridTransforms[5], new Vector3(gridTransforms[5].localPosition.x + UnityEngine.Random.Range(-0.5f, 0.5f) * 40f, gridTransforms[5].localPosition.y, 0f), 0.15f).setEaseInOutCirc().setRepeat(8).setLoopPingPong();
-	}
+    void ShakeGrid()
+    {
+        const float shakeMagnitude = 40f;  // same intensity you had before
+        const float duration = 0.15f;
+        const int repeatCount = 8;    // keep your original "energy"
 
-	void ResetGrid()
+        for (int i = 0; i < gridTransforms.Length; i++)
+        {
+            RectTransform tile = gridTransforms[i];
+
+            // Fallback: if base positions aren't set yet, use whatever we have
+            Vector3 basePos = (gridBasePositions != null && gridBasePositions.Length > i)
+                ? gridBasePositions[i]
+                : tile.localPosition;
+
+            // Cancel any existing tweens on this tile to avoid overlapping shakes
+            LeanTween.cancel(tile.gameObject);
+
+            // Random horizontal offset around the base position
+            float offsetX = UnityEngine.Random.Range(-0.5f, 0.5f) * shakeMagnitude;
+            Vector3 targetPos = new Vector3(basePos.x + offsetX, basePos.y, basePos.z);
+
+            LeanTween.moveLocal(tile.gameObject, targetPos, duration)
+                .setEaseInOutCirc()
+                .setLoopPingPong()
+                .setRepeat(repeatCount)
+                .setOnComplete(() =>
+                {
+                    // Hard snap back to the original cell position at the end
+                    tile.localPosition = basePos;
+                });
+        }
+    }
+
+    void ResetGrid()
 	{
 		LetterCharacterTransform.localPosition = new Vector3(-650f, 0f, 0f);
 		currentGridClick = -1;
@@ -1393,7 +1515,18 @@ public void GenerateRandomDisplayList()
 		gridTransforms[3].localPosition = new Vector3(-162f, -103f, 0f);
 		gridTransforms[4].localPosition = new Vector3(1f, -103f, 0f);
 		gridTransforms[5].localPosition = new Vector3(164f, -103f, 0f);
-	}
+
+        // Update base positions after resetting the grid layout
+        if (gridBasePositions == null || gridBasePositions.Length != gridTransforms.Length)
+        {
+            gridBasePositions = new Vector3[gridTransforms.Length];
+        }
+
+        for (int i = 0; i < gridTransforms.Length; i++)
+        {
+            gridBasePositions[i] = gridTransforms[i].localPosition;
+        }
+    }
 
     void OnResetPlayScreen()
     {
@@ -1605,23 +1738,33 @@ public void GenerateRandomDisplayList()
 				//gardenLogicObj.AnimateFlag = true;
 				gameState = "AnimateGardenWait";
 				break;
-			case "PlayGame":
-				startTime = Time.time;
-				UpdateScreenDisplay();
-				// Pop size of Letter
-				LeanTween.size(DisplayGridTransform, DisplayGridTransform.sizeDelta * 1.1f, 0.75f).setDelay(0.5f).setEaseInOutCirc().setRepeat(4).setLoopPingPong();
-				LeanTween.size(DisplayLetterTransform, DisplayLetterTransform.sizeDelta * 1.1f, 0.75f).setDelay(0.5f).setEaseInOutCirc().setRepeat(4).setLoopPingPong();
-				// VO Instructions
-				audioPlayIntro = true;
-				playVOAudio("touch_and_say_letter");
-				gameState = "PlayerSelectLetter";
-				break;
-			case "PlayerSelectLetter":
+            case "PlayGame":
+                startTime = Time.time;
+                UpdateScreenDisplay();
+
+                // Ensure we start from the original base sizes each session
+                DisplayGridTransform.sizeDelta = baseGridSize;
+                DisplayLetterTransform.sizeDelta = baseLetterSize;
+
+                // Pop size of Letter (always relative to the base)
+                LeanTween.size(DisplayGridTransform, baseGridSize * 1.1f, 0.75f)
+                    .setDelay(0.5f).setEaseInOutCirc().setRepeat(4).setLoopPingPong();
+
+                LeanTween.size(DisplayLetterTransform, baseLetterSize * 1.1f, 0.75f)
+                    .setDelay(0.5f).setEaseInOutCirc().setRepeat(4).setLoopPingPong();
+
+                // VO Instructions
+                audioPlayIntro = true;
+                playVOAudio("touch_and_say_letter");
+                gameState = "PlayerSelectLetter";
+                break;
+            case "PlayerSelectLetter":
 				if (audioPlayIntro)
 				{
 					AudioSource audioIntro = gameObject.GetComponent<AudioSource>();
-					if (!audioIntro.isPlaying)
+					if (!audioIntro.isPlaying && CorrectLetterCounter == 0)
 					{
+                        // Only play the letter VO if no Correct answers yet
 						playLetterAudio(currentDisplayLetter);
 						audioPlayIntro = false;
 					}

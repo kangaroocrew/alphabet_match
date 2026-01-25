@@ -1,10 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using UnityEngine;
 
 public class AnimateGardenLetter : MonoBehaviour
 {
    public int AnimateFlag;
+
+	[SerializeField] private float fallSpeed = 180f; // was effectively 100
+
    float velocity;
    float yPos;
    
@@ -21,8 +25,13 @@ public class AnimateGardenLetter : MonoBehaviour
 	   waitTime = 0.15f;
 	   waitFlag = false;
 	   AnimateFlag = 0;
-	   velocity = -100f;
+
+		// Use the serialized fallSpeed instead of hard-coded -100f
+	   velocity = -fallSpeed;
 	   yPos = 0f;
+
+		// Make sure we visually reset the position too
+		GetComponent<RectTransform>().localPosition = new Vector3(0f, yPos, 0f);
    }
    
     // Update is called once per frame
